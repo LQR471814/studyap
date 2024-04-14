@@ -1,0 +1,288 @@
+{
+  "version": "5",
+  "dialect": "sqlite",
+  "id": "dc885595-416f-4e84-94da-b3971e5702ad",
+  "prevId": "00000000-0000-0000-0000-000000000000",
+  "tables": {
+    "frqPart": {
+      "name": "frqPart",
+      "columns": {
+        "stimulusId": {
+          "name": "stimulusId",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "partNo": {
+          "name": "partNo",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "question": {
+          "name": "question",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "frqPart_stimulusId_stimulus_id_fk": {
+          "name": "frqPart_stimulusId_stimulus_id_fk",
+          "tableFrom": "frqPart",
+          "tableTo": "stimulus",
+          "columnsFrom": [
+            "stimulusId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
+        }
+      },
+      "compositePrimaryKeys": {
+        "id": {
+          "columns": [
+            "partNo",
+            "stimulusId"
+          ],
+          "name": "id"
+        }
+      },
+      "uniqueConstraints": {}
+    },
+    "mcq": {
+      "name": "mcq",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "question": {
+          "name": "question",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "stimulusId": {
+          "name": "stimulusId",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "answerIndex": {
+          "name": "answerIndex",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "explanation": {
+          "name": "explanation",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "mcq_stimulusId_stimulus_id_fk": {
+          "name": "mcq_stimulusId_stimulus_id_fk",
+          "tableFrom": "mcq",
+          "tableTo": "stimulus",
+          "columnsFrom": [
+            "stimulusId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "mcqOption": {
+      "name": "mcqOption",
+      "columns": {
+        "index": {
+          "name": "index",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "mcqId": {
+          "name": "mcqId",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "text": {
+          "name": "text",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "mcqOption_mcqId_mcq_id_fk": {
+          "name": "mcqOption_mcqId_mcq_id_fk",
+          "tableFrom": "mcqOption",
+          "tableTo": "mcq",
+          "columnsFrom": [
+            "mcqId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
+        }
+      },
+      "compositePrimaryKeys": {
+        "id": {
+          "columns": [
+            "index",
+            "mcqId"
+          ],
+          "name": "id"
+        }
+      },
+      "uniqueConstraints": {}
+    },
+    "stimulus": {
+      "name": "stimulus",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "unit": {
+          "name": "unit",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "text": {
+          "name": "text",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "testId": {
+          "name": "testId",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "stimulus_testId_test_id_fk": {
+          "name": "stimulus_testId_test_id_fk",
+          "tableFrom": "stimulus",
+          "tableTo": "test",
+          "columnsFrom": [
+            "testId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "test": {
+      "name": "test",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "subject": {
+          "name": "subject",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "generatorVersion": {
+          "name": "generatorVersion",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "useGenVersion": {
+      "name": "useGenVersion",
+      "columns": {
+        "subject": {
+          "name": "subject",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "generatorVersion": {
+          "name": "generatorVersion",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "useGenVersion_subject_unique": {
+          "name": "useGenVersion_subject_unique",
+          "columns": [
+            "subject"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    }
+  },
+  "enums": {},
+  "_meta": {
+    "schemas": {},
+    "tables": {},
+    "columns": {}
+  }
+}
