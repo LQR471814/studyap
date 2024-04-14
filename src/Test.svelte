@@ -21,17 +21,25 @@
 </button>
 
 {#await test then test}
-    <h1 class="text-xl font-bold">{test.subject}</h1>
+    <div class="flex flex-col gap-3">
+        <h1 class="text-xl font-bold">{test.subject}</h1>
 
-    <h2 class="text-md font-bold italic my-2">Multiple Choice</h2>
-    {#each test.mcqs as mcq}
-        <MCQ {mcq} />
-    {/each}
+        <h2 class="text-md font-bold italic">Multiple Choice</h2>
+        {#each test.mcqs as mcq, i}
+            <MCQ stimulus={mcq} />
+            {#if i !== test.mcqs.length - 1}
+                <hr class="border-black" />
+            {/if}
+        {/each}
 
-    <h2 class="text-md font-bold italic my-2">Free Response</h2>
-    {#each test.frqs as frq}
-        <FRQ {frq} />
-    {/each}
+        <h2 class="text-md font-bold italic">Free Response</h2>
+        {#each test.frqs as frq, i}
+            <FRQ {frq} testId={id} />
+            {#if i !== test.mcqs.length - 1}
+                <hr class="border-black" />
+            {/if}
+        {/each}
+    </div>
 {:catch err}
     {err.message}
 {/await}

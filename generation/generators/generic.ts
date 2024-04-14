@@ -37,7 +37,7 @@ export function GENERIC_FRQ_GRADING_INSTRUCTIONS(
   question: string,
   response: string,
 ) {
-  return `Grade the following response to an AP Collegeboard free response question strictly according to the free response grading guidelines of the ${subject} exam. Return the graded result in a JSON dictionary with key "score" being a number indicating the amount of points scored; key "total" being the total number of points that could be scored; and "explanation" being the reason you scored it as such plus some improvements to the response and examples of those improvements.\n\nStimulus: ${stimulus}\n\nQuestion: ${question}\n\nResponse: ${response}`
+  return `Grade the following response to an AP Collegeboard free response question strictly according to the free response grading guidelines of the ${subject} exam. You must return the graded result in a JSON dictionary with key "score" being a number indicating the amount of points scored; key "total" being the total number of points that could be scored; and "explanation" being the reason you scored it as such plus some improvements to the response and examples of those improvements. If there appears to be an issue with the response, return {"score": 0, "total": 1, "explanation": "There appears to be a malformed response."}. \n\nStimulus: ${stimulus}\n\nQuestion: ${question}\n\nResponse: ${response}`
 }
 
 export const frqGradingReturns = z.object({

@@ -2,16 +2,21 @@ import { getTest } from "@/generation/utils";
 import { createDB } from "@/lib/db";
 import { createClient } from "@libsql/client";
 import { test } from "@/schema/tests"
-import { AutoRouter } from "itty-router"
+import { AutoRouter, withContent } from "itty-router"
+import { generators } from "@/generation/generators"
+import OpenAI from "openai";
+import type { FRQ, Stimulus } from "@/generation/types";
+import { eq } from "drizzle-orm";
 
 type Env = {
+  OPENAI_API_KEY: string
   DATABASE_URL?: string
   DATABASE_AUTH_TOKEN?: string
 }
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "GET, OPTIONS",
+  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
   "Access-Control-Allow-Headers": "*",
 };
 
@@ -39,6 +44,36 @@ export default {
 
     router.options("*", () => {
       return new Response("ok", { headers: CORS_HEADERS });
+    })
+
+    router.post("/evaluate/frq/:testId", withContent, async ({ content, testId }) => {
+      const openai = new OpenAI({
+        apiKey: env.OPENAI_API_KEY,
+      })
+      const generatorList = generators(openai)
+
+      if (content instanceof FormData || typeof content === "string") {
+        return errorResponse(415, `you should post in JSON`)
+      }
+
+      // TODO: add more robust validation here later
+      const typedContent = content as {
+        stimulus: Stimulus<FRQ>,
+        responses: string[],
+      }
+
+      const [{ subject }] = await db.select()
+        .from(test)
+        .where(eq(test.id, parseInt(testId)))
+
+      const gen = generatorList.find(g => g.subject === subject)
+      if (!gen) {
+        throw new Error(`could not find generator with subject ${subject}`)
+      }
+
+      return jsonResponse(
+        await gen.evaluateFrq(typedContent.stimulus, typedContent.responses)
+      )
     })
 
     router.get("/test/:id", async ({ id }) => {

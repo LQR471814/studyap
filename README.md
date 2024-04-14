@@ -20,8 +20,14 @@ DATABASE_URL="..."
 DATABASE_AUTH_TOKEN="..."
 ```
 
+> note that in svelte only `VITE_` prefixed environment variables will be exposed by `import.meta.env`.
+
+> note also that in cloudflare workers (`api/index.ts`), only environment variables defined in `.dev.vars` will be exposed (so you should just copy the contents of `.env` to `.dev.vars`).
+
 ## scripts
 
+- `dev:ui` - run the vite devserver.
+- `dev:api` - run the cloudflare workers devserver.
 - `test` - run unit tests
 - `db:generate` - generates database sql migrations
 - `db:push` - pushes migrations to a database
