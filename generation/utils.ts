@@ -1,9 +1,9 @@
-import { db } from "@/lib/db";
+import { DB } from "@/lib/utils";
 import { FRQ, MCQ, Stimulus, Test } from "./types";
 import * as schema from "@/schema/tests"
 import { asc, eq } from "drizzle-orm";
 
-export async function getTest(id: number): Promise<Test> {
+export async function getTest(db: DB, id: number): Promise<Test> {
   const test = await db.query.test.findFirst({
     with: {
       stimulus: {

@@ -1,3 +1,4 @@
+import OpenAI from "openai";
 import { Generic } from "./generic";
 
 const STIMULUS_INSTRUCTIONS = `For stimulus generation, you should abide the following rules: 1. DO NOT generate any questions or answers, this should just be an excerpt from a historical document. 2. DO NOT prepend your own contextualization to the historical document, keep it as is. 3. DO CITE the author and date of the historical document at the end of the excerpt.`
@@ -15,8 +16,8 @@ const UNITS = [
 ]
 
 export class USHistory extends Generic {
-  constructor() {
-    super("ap_us_history", "AP US History", {
+  constructor(openai: OpenAI) {
+    super(openai, "ap_us_history", "AP US History", {
       units: UNITS,
       mcqQuestionCount: 55,
       mcqPartCountRange: [1, 3],

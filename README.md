@@ -1,10 +1,13 @@
 # studyap.org
 
-built with [nextjs](https://nextjs.org)
+```bash
+pnpm install
 
-```
-npm i
-npm run dev
+# run sqld
+docker compose up -d
+
+pnpm dev:ui
+pnpm dev:api
 ```
 
 ## dotenv

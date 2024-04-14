@@ -1,7 +1,7 @@
 node_modules
 *.tsbuildinfo
-*.db
 .env
+.data
 
 # next
 

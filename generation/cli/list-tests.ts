@@ -1,5 +1,5 @@
-import { db } from "@/lib/db"
 import * as schema from "@/schema/tests"
+import { db } from "./common"
 
 async function main() {
   const tests = await db.select().from(schema.test)

@@ -1,9 +1,10 @@
-import { db } from "@/lib/db"
 import FlagSet, { integer } from "jsflags"
 import { parseNodejs } from "jsflags/node"
 import * as schema from "@/schema/tests"
 import { generators } from "@/generation/generators"
 import { Test } from "@/generation/types"
+import { DB } from "@/lib/db"
+import { db, openai } from "./common"
 
 const flags = new FlagSet()
 
@@ -11,7 +12,7 @@ const testCount = flags.flag(integer, "count", "the amount of tests to generate 
 
 parseNodejs(flags)
 
-async function uploadTest(subject: schema.Subject, testObj: Test) {
+async function uploadTest(db: DB, subject: schema.Subject, testObj: Test) {
   await db.transaction(async (tx) => {
     const [test] = await tx.insert(schema.test).values({
       subject: subject,
@@ -70,12 +71,12 @@ async function main() {
   await Promise.all(
     new Array(testCount.value)
       .fill(undefined)
-      .flatMap((_, i) => generators.map(async (gen) => {
-        const debugName = `${gen.subject} #${i+1}`
+      .flatMap((_, i) => generators(openai).map(async (gen) => {
+        const debugName = `${gen.subject} #${i + 1}`
         console.log(`generating test for ${debugName}...`)
         const test = await gen.generate()
         console.log(`uploading test for ${debugName}...`)
-        await uploadTest(gen.subject, test)
+        await uploadTest(db, gen.subject, test)
         console.log(`finished creating test for ${debugName}.`)
       }))
   )

@@ -1,8 +1,8 @@
 import { FRQ, FRQEval, MCQ, Stimulus, SubjectGenerator, Test } from "../types";
 import { Subject } from "@/schema/tests";
-import { generateRandomSegments, retryAsyncFn } from "@/lib/utils";
+import { generateRandomSegments, retryAsyncFn } from "@/lib/general";
 import { z } from "zod";
-import { openai } from "@/lib/openai";
+import type OpenAI from "openai";
 
 export function GENERIC_MCQ_INSTRUCTIONS(count: number, subject: string, unit: string) {
   return `Ask ${count} ${subject} multiple choice questions from unit "${unit}" with four answer options in the AP CollegeBoard style, including a stimulus/background scenario (the stimulus or background scenario should not include any extra instructions, it should just be the stimulus itself).`
@@ -50,6 +50,7 @@ export const frqGradingReturns = z.object({
  * A unary (single) call to openai while checking JSON.
  */
 export async function llmFnCall<T extends Zod.ZodTypeAny>(
+  openai: OpenAI,
   prompt: string,
   returns: T,
 ): Promise<Zod.TypeOf<T>> {
@@ -93,12 +94,14 @@ const GENERATOR_VERSION = 1
  */
 export class Generic implements SubjectGenerator {
   readonly subject: Subject
+  private openai: OpenAI
   private friendlySubjectName: string
   private options: GenericOptions
   private createMcq: (partCount: number) => Promise<Stimulus<MCQ>>
   private createFrq: (partCount: number) => Promise<Stimulus<FRQ>>
 
-  constructor(subject: Subject, friendlySubjectName: string, options: GenericOptions) {
+  constructor(openai: OpenAI, subject: Subject, friendlySubjectName: string, options: GenericOptions) {
+    this.openai = openai
     this.subject = subject
     this.friendlySubjectName = friendlySubjectName
     this.options = options
@@ -109,6 +112,7 @@ export class Generic implements SubjectGenerator {
         const unit = this.options.units[Math.floor(Math.random() * this.options.units.length)]
 
         const returns = await llmFnCall(
+          this.openai,
           `${GENERIC_MCQ_INSTRUCTIONS(partCount, friendlySubjectName, unit)
           } ${this.options.instructions.stimulus ?? ""
           } ${GENERIC_MCQ_RETURNS}`,
@@ -127,6 +131,7 @@ export class Generic implements SubjectGenerator {
         const unit = this.options.units[Math.floor(Math.random() * this.options.units.length)]
 
         const returns = await llmFnCall(
+          this.openai,
           `${GENERIC_FRQ_INSTRUCTIONS(partCount, friendlySubjectName, unit)
           } ${this.options.instructions.stimulus ?? ""
           } ${GENERIC_FRQ_RETURNS}`,
@@ -175,6 +180,7 @@ export class Generic implements SubjectGenerator {
   async evaluateFrq(frq: Stimulus<FRQ>, responses: string[]): Promise<FRQEval[]> {
     const grade = retryAsyncFn("grade frq", 2, (question: string, response: string) => {
       return llmFnCall(
+        this.openai,
         GENERIC_FRQ_GRADING_INSTRUCTIONS(
           this.friendlySubjectName,
           frq.text,

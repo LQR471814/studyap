@@ -1,9 +1,9 @@
-import { db } from "@/lib/db"
 import * as schema from "@/schema/tests"
 import { eq } from "drizzle-orm"
 import FlagSet, { integer, multiple } from "jsflags"
 import { parseNodejs } from "jsflags/node"
 import { getTest } from "../utils"
+import { db } from "./common"
 
 const flags = new FlagSet(multiple(integer))
 const ids = parseNodejs(flags)
@@ -17,7 +17,7 @@ async function formatTest(id: number) {
     process.exit(1)
   }
 
-  const fullTest = await getTest(id)
+  const fullTest = await getTest(db, id)
 
   let out = `============= ${test.subject} =============\n`
   out += `id: ${id}\ngenerator version: ${test.generatorVersion}\n`

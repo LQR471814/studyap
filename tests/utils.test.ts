@@ -1,4 +1,4 @@
-import { generateRandomSegments, retryAsyncFn } from "@/lib/utils"
+import { generateRandomSegments, retryAsyncFn } from "@/lib/general"
 
 test("generateRandomSegments", () => {
   for (let i = 0; i < 20; i++) {

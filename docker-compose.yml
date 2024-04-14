@@ -1,0 +1,12 @@
+version: "3"
+services:
+  sqld:
+    image: ghcr.io/libsql/sqld:latest
+    container_name: sqld
+    ports:
+      - "8080:8080"
+    volumes:
+      - sqld-data:/var/lib/sqld
+
+volumes:
+  sqld-data:
