@@ -29,7 +29,7 @@ DATABASE_AUTH_TOKEN="..."
 ## ap test generation
 
 1. run `pnpm db:push` to create/migrate a database.
-1. run `pnpm script:generate -count 1` to generate 1 ap test.
+1. run `pnpm script:generate -count 1` to generate 1 ap test. (this may take a while)
 1. run `pnpm script:list-tests` to find the id of the test you generated. (it should be 1)
 1. run `pnpm script:view-tests <test id>` to view the test you generated.
 

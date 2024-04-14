@@ -74,8 +74,12 @@ export async function llmFnCall<T extends Zod.ZodTypeAny>(
 }
 
 export type GenericOptions = {
+  mcqPartCountRange: [number, number]
   mcqQuestionCount: number
+
+  frqPartCountRange: [number, number]
   frqQuestionCount: number
+
   units: string[]
   instructions: Partial<{
     stimulus: string
@@ -139,10 +143,10 @@ export class Generic implements SubjectGenerator {
 
   async generate(): Promise<Test> {
     const mcqSegments = generateRandomSegments(
-      this.options.mcqQuestionCount, [2, 5]
+      this.options.mcqQuestionCount, this.options.mcqPartCountRange
     )
     const frqSegments = generateRandomSegments(
-      this.options.frqQuestionCount, [5, 7]
+      this.options.frqQuestionCount, this.options.frqPartCountRange
     )
 
     const mcqs: Stimulus<MCQ>[] = []

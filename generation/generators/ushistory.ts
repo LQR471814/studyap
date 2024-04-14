@@ -19,7 +19,9 @@ export class USHistory extends Generic {
     super("ap_us_history", "AP US History", {
       units: UNITS,
       mcqQuestionCount: 55,
-      frqQuestionCount: 4,
+      mcqPartCountRange: [1, 3],
+      frqQuestionCount: 12,
+      frqPartCountRange: [2, 4],
       instructions: {
         stimulus: STIMULUS_INSTRUCTIONS,
       }
