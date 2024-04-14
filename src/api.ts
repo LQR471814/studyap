@@ -1,7 +1,7 @@
 import type { FRQ, FRQEval, Stimulus, Test } from "@/generation/types"
 import { z } from "zod"
 
-const apiEndpoint = new URL(import.meta.env.VITE_API_URL)
+const apiEndpoint = new URL(import.meta.env.VITE_API_URL ?? "http://127.0.0.1:8787")
 
 const testList = z.array(z.object({
   id: z.number(),
