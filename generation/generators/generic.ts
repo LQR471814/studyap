@@ -104,10 +104,6 @@ export class Generic implements SubjectGenerator {
       async (partCount: number) => {
         const unit = this.options.units[Math.floor(Math.random() * this.options.units.length)]
 
-        console.log(`${GENERIC_MCQ_INSTRUCTIONS(partCount, friendlySubjectName, unit)
-          } ${this.options.instructions.stimulus ?? ""
-          } ${GENERIC_MCQ_RETURNS}`)
-
         const returns = await llmFnCall(
           `${GENERIC_MCQ_INSTRUCTIONS(partCount, friendlySubjectName, unit)
           } ${this.options.instructions.stimulus ?? ""
@@ -125,10 +121,6 @@ export class Generic implements SubjectGenerator {
       "generateFrq", 2,
       async (partCount: number) => {
         const unit = this.options.units[Math.floor(Math.random() * this.options.units.length)]
-
-        console.log(`${GENERIC_FRQ_INSTRUCTIONS(partCount, friendlySubjectName, unit)
-          } ${this.options.instructions.stimulus ?? ""
-          } ${GENERIC_FRQ_RETURNS}`)
 
         const returns = await llmFnCall(
           `${GENERIC_FRQ_INSTRUCTIONS(partCount, friendlySubjectName, unit)

@@ -18,8 +18,8 @@ export class USHistory extends Generic {
   constructor() {
     super("ap_us_history", "AP US History", {
       units: UNITS,
-      mcqQuestionCount: 5,
-      frqQuestionCount: 2,
+      mcqQuestionCount: 55,
+      frqQuestionCount: 4,
       instructions: {
         stimulus: STIMULUS_INSTRUCTIONS,
       }
