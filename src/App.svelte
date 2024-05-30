@@ -1,41 +1,24 @@
 <script lang="ts">
-    import { getTestList } from "./api"
-    import Test from "./Test.svelte"
+    import HistoryIcon from "~icons/ri/history-fill";
+    import SidebarButton from "./components/SidebarButton.svelte";
+    import TestHistory from "./routes/TestHistory.svelte";
 
-    const testList = getTestList()
+    type Route = "test-history";
 
-    let selectedTest: number | undefined
+    let route: Route = "test-history";
 </script>
 
-<main>
-    {#if selectedTest === undefined}
-        {#await testList}
-            <p>loading...</p>
-        {:then list}
-            <ul>
-            {#each list as t}
-                <li>
-                    <button
-                        class="text-blue-700 hover:underline"
-                        on:click={() => {
-                            selectedTest = t.id
-                        }}
-                    >
-                        {t.id} - {t.subject}
-                    </button>
-                </li>
-            {/each}
-            </ul>
-        {:catch error}
-            {error.message}
-        {/await}
-    {:else}
-        <Test
-            id={selectedTest}
-            on:close={() => {
-                selectedTest = undefined
-            }}
-        />
-    {/if}
-</main>
-
+<div class="flex gap-5 p-4">
+    <div class="flex flex-col gap-3 min-w-[200px]">
+        <h1 class="font-black text-2xl">studyap.org</h1>
+        <SidebarButton selected={route === "test-history"}>
+            <HistoryIcon name="icon" />
+            Test History
+        </SidebarButton>
+    </div>
+    <div class="flex-1">
+        {#if route === "test-history"}
+            <TestHistory />
+        {/if}
+    </div>
+</div>

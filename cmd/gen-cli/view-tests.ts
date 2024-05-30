@@ -2,7 +2,7 @@ import * as schema from "@/schema/tests"
 import { eq } from "drizzle-orm"
 import FlagSet, { integer, multiple } from "jsflags"
 import { parseNodejs } from "jsflags/node"
-import { getTest } from "../utils"
+import { getTest } from "../../lib/generators/utils"
 import { db } from "./common"
 
 const flags = new FlagSet(multiple(integer))

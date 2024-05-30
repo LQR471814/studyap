@@ -1,8 +1,8 @@
 import FlagSet, { integer } from "jsflags"
 import { parseNodejs } from "jsflags/node"
 import * as schema from "@/schema/tests"
-import { generators } from "@/generation/generators"
-import { Test } from "@/generation/types"
+import { generators } from "@/lib/generators"
+import { Test } from "@/lib/generators/types"
 import { DB } from "@/lib/db"
 import { db, openai } from "./common"
 

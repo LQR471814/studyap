@@ -1,11 +1,11 @@
 import { LibSQLDatabase, drizzle } from "drizzle-orm/libsql"
-import * as testRels from "@/schema/tests.relations"
-import * as tests from "@/schema/tests"
+import * as schemaRels from "@/lib/schema/schema.relations"
+import * as schema from "@/lib/schema/schema"
 import { Client } from "@libsql/client"
 
-export type DB = LibSQLDatabase<typeof testRels & typeof tests>
+export type DB = LibSQLDatabase<typeof schemaRels & typeof schema>
 
 export function createDB(client: Client): DB {
-  return drizzle(client, { schema: { ...tests, ...testRels } })
+  return drizzle(client, { schema: { ...schema, ...schemaRels } })
 }
 

@@ -13,21 +13,24 @@
     "script:generate": "dotenv -- tsx generation/cli/generate.ts",
     "script:list-tests": "dotenv -- tsx generation/cli/list-tests.ts",
     "script:view-tests": "dotenv -- tsx generation/cli/view-tests.ts",
-    "db:generate": "drizzle-kit generate:sqlite && drizzle-rel-gen -snapshot=\"drizzle/meta/0000_snapshot.json\" -src=\"schema/tests.ts\" -module=\"./tests\" -outfile=\"schema/tests.relations.ts\"",
+    "db:generate": "drizzle-kit generate:sqlite && drizzle-rel-gen -snapshot=\"drizzle/meta/0000_snapshot.json\" -src=\"lib/schema/schema.ts\" -module=\"./schema\" -outfile=\"lib/schema/schema.relations.ts\"",
     "db:push": "drizzle-kit push:sqlite"
   },
   "dependencies": {
     "@libsql/client": "^0.6.0",
+    "@trpc/client": "11.0.0-rc.382",
+    "@trpc/server": "11.0.0-rc.382",
     "bits-ui": "^0.21.3",
     "drizzle-orm": "^0.30.8",
-    "itty-router": "^5.0.12",
     "jsflags": "^1.3.0",
     "openai": "^4.24.1",
-    "tailwind-merge": "^2.0.0",
+    "tailwind-merge": "^2.2.2",
     "zod": "^3.22.4"
   },
   "devDependencies": {
+    "@biomejs/biome": "^1.7.3",
     "@cloudflare/workers-types": "^4.20240405.0",
+    "@iconify-json/ri": "^1.1.20",
     "@sveltejs/vite-plugin-svelte": "^3.1.0",
     "@swc/jest": "^0.2.36",
     "@tsconfig/svelte": "^5.0.4",
@@ -46,7 +49,9 @@
     "tslib": "^2.6.2",
     "tsx": "^4.7.2",
     "typescript": "^5",
+    "unplugin-icons": "^0.19.0",
     "vite": "^5.2.8",
     "wrangler": "^3.50.0"
-  }
+  },
+  "packageManager": "pnpm@9.1.4+sha512.9df9cf27c91715646c7d675d1c9c8e41f6fce88246f1318c1aa6a1ed1aeb3c4f032fcdf4ba63cc69c4fe6d634279176b5358727d8f2cc1e65b65f43ce2f8bfb0"
 }
