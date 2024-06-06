@@ -1,28 +1,42 @@
 {
-  "version": "5",
+  "version": "6",
   "dialect": "sqlite",
-  "id": "68ad20e6-1e19-4629-83d7-cd0b35c84482",
+  "id": "b9069466-0b0f-423f-8e45-31283f5cd754",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
-    "frq": {
-      "name": "frq",
+    "frqAttempt": {
+      "name": "frqAttempt",
       "columns": {
-        "id": {
-          "name": "id",
+        "testId": {
+          "name": "testId",
           "type": "integer",
-          "primaryKey": true,
-          "notNull": true,
-          "autoincrement": true
-        },
-        "question": {
-          "name": "question",
-          "type": "text",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
-        "imageUrl": {
-          "name": "imageUrl",
+        "questionId": {
+          "name": "questionId",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "scoredPoints": {
+          "name": "scoredPoints",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "scoringNotes": {
+          "name": "scoringNotes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "response": {
+          "name": "response",
           "type": "text",
           "primaryKey": false,
           "notNull": false,
@@ -30,36 +44,13 @@
         }
       },
       "indexes": {},
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
-    },
-    "frqUnit": {
-      "name": "frqUnit",
-      "columns": {
-        "unitId": {
-          "name": "unitId",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "frqId": {
-          "name": "frqId",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        }
-      },
-      "indexes": {},
       "foreignKeys": {
-        "frqUnit_unitId_unit_id_fk": {
-          "name": "frqUnit_unitId_unit_id_fk",
-          "tableFrom": "frqUnit",
-          "tableTo": "unit",
+        "frqAttempt_testId_testAttempt_id_fk": {
+          "name": "frqAttempt_testId_testAttempt_id_fk",
+          "tableFrom": "frqAttempt",
+          "tableTo": "testAttempt",
           "columnsFrom": [
-            "unitId"
+            "testId"
           ],
           "columnsTo": [
             "id"
@@ -67,12 +58,12 @@
           "onDelete": "cascade",
           "onUpdate": "cascade"
         },
-        "frqUnit_frqId_frq_id_fk": {
-          "name": "frqUnit_frqId_frq_id_fk",
-          "tableFrom": "frqUnit",
-          "tableTo": "frq",
+        "frqAttempt_questionId_question_id_fk": {
+          "name": "frqAttempt_questionId_question_id_fk",
+          "tableFrom": "frqAttempt",
+          "tableTo": "question",
           "columnsFrom": [
-            "frqId"
+            "questionId"
           ],
           "columnsTo": [
             "id"
@@ -82,44 +73,14 @@
         }
       },
       "compositePrimaryKeys": {
-        "frqUnit_frqId_unitId_pk": {
+        "frqAttempt_testId_questionId_pk": {
           "columns": [
-            "frqId",
-            "unitId"
+            "questionId",
+            "testId"
           ],
-          "name": "frqUnit_frqId_unitId_pk"
+          "name": "frqAttempt_testId_questionId_pk"
         }
       },
-      "uniqueConstraints": {}
-    },
-    "mcq": {
-      "name": "mcq",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "integer",
-          "primaryKey": true,
-          "notNull": true,
-          "autoincrement": true
-        },
-        "question": {
-          "name": "question",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "imageUrl": {
-          "name": "imageUrl",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
     "mcqAttempt": {
@@ -138,6 +99,20 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
+        },
+        "scoredPoints": {
+          "name": "scoredPoints",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "response": {
+          "name": "response",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
         }
       },
       "indexes": {},
@@ -154,13 +129,125 @@
           ],
           "onDelete": "cascade",
           "onUpdate": "cascade"
+        },
+        "mcqAttempt_questionId_question_id_fk": {
+          "name": "mcqAttempt_questionId_question_id_fk",
+          "tableFrom": "mcqAttempt",
+          "tableTo": "question",
+          "columnsFrom": [
+            "questionId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
+        },
+        "mcqAttempt_response_questionChoice_id_fk": {
+          "name": "mcqAttempt_response_questionChoice_id_fk",
+          "tableFrom": "mcqAttempt",
+          "tableTo": "questionChoice",
+          "columnsFrom": [
+            "response"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
+        }
+      },
+      "compositePrimaryKeys": {
+        "mcqAttempt_testId_questionId_pk": {
+          "columns": [
+            "questionId",
+            "testId"
+          ],
+          "name": "mcqAttempt_testId_questionId_pk"
+        }
+      },
+      "uniqueConstraints": {}
+    },
+    "question": {
+      "name": "question",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "subjectId": {
+          "name": "subjectId",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "stimulusId": {
+          "name": "stimulusId",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "format": {
+          "name": "format",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "content": {
+          "name": "content",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "totalPoints": {
+          "name": "totalPoints",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "question_subjectId_subject_id_fk": {
+          "name": "question_subjectId_subject_id_fk",
+          "tableFrom": "question",
+          "tableTo": "subject",
+          "columnsFrom": [
+            "subjectId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
+        },
+        "question_stimulusId_stimulus_id_fk": {
+          "name": "question_stimulusId_stimulus_id_fk",
+          "tableFrom": "question",
+          "tableTo": "stimulus",
+          "columnsFrom": [
+            "stimulusId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
         }
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
-    "mcqChoice": {
-      "name": "mcqChoice",
+    "questionChoice": {
+      "name": "questionChoice",
       "columns": {
         "id": {
           "name": "id",
@@ -189,14 +276,21 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
+        },
+        "explanation": {
+          "name": "explanation",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
         }
       },
       "indexes": {},
       "foreignKeys": {
-        "mcqChoice_questionId_mcq_id_fk": {
-          "name": "mcqChoice_questionId_mcq_id_fk",
-          "tableFrom": "mcqChoice",
-          "tableTo": "mcq",
+        "questionChoice_questionId_question_id_fk": {
+          "name": "questionChoice_questionId_question_id_fk",
+          "tableFrom": "questionChoice",
+          "tableTo": "question",
           "columnsFrom": [
             "questionId"
           ],
@@ -210,8 +304,45 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
-    "mcqUnit": {
-      "name": "mcqUnit",
+    "questionGradingGuidelines": {
+      "name": "questionGradingGuidelines",
+      "columns": {
+        "questionId": {
+          "name": "questionId",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "content": {
+          "name": "content",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "questionGradingGuidelines_questionId_question_id_fk": {
+          "name": "questionGradingGuidelines_questionId_question_id_fk",
+          "tableFrom": "questionGradingGuidelines",
+          "tableTo": "question",
+          "columnsFrom": [
+            "questionId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "questionUnit": {
+      "name": "questionUnit",
       "columns": {
         "unitId": {
           "name": "unitId",
@@ -220,8 +351,8 @@
           "notNull": true,
           "autoincrement": false
         },
-        "mcqId": {
-          "name": "mcqId",
+        "questionId": {
+          "name": "questionId",
           "type": "integer",
           "primaryKey": false,
           "notNull": true,
@@ -230,9 +361,9 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "mcqUnit_unitId_unit_id_fk": {
-          "name": "mcqUnit_unitId_unit_id_fk",
-          "tableFrom": "mcqUnit",
+        "questionUnit_unitId_unit_id_fk": {
+          "name": "questionUnit_unitId_unit_id_fk",
+          "tableFrom": "questionUnit",
           "tableTo": "unit",
           "columnsFrom": [
             "unitId"
@@ -243,12 +374,12 @@
           "onDelete": "cascade",
           "onUpdate": "cascade"
         },
-        "mcqUnit_mcqId_mcq_id_fk": {
-          "name": "mcqUnit_mcqId_mcq_id_fk",
-          "tableFrom": "mcqUnit",
-          "tableTo": "mcq",
+        "questionUnit_questionId_question_id_fk": {
+          "name": "questionUnit_questionId_question_id_fk",
+          "tableFrom": "questionUnit",
+          "tableTo": "question",
           "columnsFrom": [
-            "mcqId"
+            "questionId"
           ],
           "columnsTo": [
             "id"
@@ -258,12 +389,12 @@
         }
       },
       "compositePrimaryKeys": {
-        "mcqUnit_mcqId_unitId_pk": {
+        "questionUnit_questionId_unitId_pk": {
           "columns": [
-            "mcqId",
+            "questionId",
             "unitId"
           ],
-          "name": "mcqUnit_mcqId_unitId_pk"
+          "name": "questionUnit_questionId_unitId_pk"
         }
       },
       "uniqueConstraints": {}
@@ -278,11 +409,18 @@
           "notNull": true,
           "autoincrement": true
         },
+        "subjectId": {
+          "name": "subjectId",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
         "content": {
           "name": "content",
           "type": "text",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         },
         "imageUrl": {
@@ -291,10 +429,45 @@
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
+        },
+        "imageAltText": {
+          "name": "imageAltText",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "attribution": {
+          "name": "attribution",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "forFormat": {
+          "name": "forFormat",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
         }
       },
       "indexes": {},
-      "foreignKeys": {},
+      "foreignKeys": {
+        "stimulus_subjectId_subject_id_fk": {
+          "name": "stimulus_subjectId_subject_id_fk",
+          "tableFrom": "stimulus",
+          "tableTo": "subject",
+          "columnsFrom": [
+            "subjectId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
+        }
+      },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
@@ -303,10 +476,10 @@
       "columns": {
         "id": {
           "name": "id",
-          "type": "text",
+          "type": "integer",
           "primaryKey": true,
           "notNull": true,
-          "autoincrement": false
+          "autoincrement": true
         },
         "name": {
           "name": "name",
@@ -331,6 +504,13 @@
           "notNull": true,
           "autoincrement": true
         },
+        "subjectId": {
+          "name": "subjectId",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
         "userEmail": {
           "name": "userEmail",
           "type": "text",
@@ -341,6 +521,19 @@
       },
       "indexes": {},
       "foreignKeys": {
+        "testAttempt_subjectId_subject_id_fk": {
+          "name": "testAttempt_subjectId_subject_id_fk",
+          "tableFrom": "testAttempt",
+          "tableTo": "subject",
+          "columnsFrom": [
+            "subjectId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
+        },
         "testAttempt_userEmail_user_email_fk": {
           "name": "testAttempt_userEmail_user_email_fk",
           "tableFrom": "testAttempt",
@@ -363,14 +556,14 @@
       "columns": {
         "id": {
           "name": "id",
-          "type": "text",
+          "type": "integer",
           "primaryKey": true,
           "notNull": true,
-          "autoincrement": false
+          "autoincrement": true
         },
         "subjectId": {
           "name": "subjectId",
-          "type": "text",
+          "type": "integer",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
@@ -431,5 +624,8 @@
     "schemas": {},
     "tables": {},
     "columns": {}
+  },
+  "internal": {
+    "indexes": {}
   }
 }

@@ -1,11 +1,9 @@
 node_modules
 *.tsbuildinfo
-.env
+
 .dev.vars
 .data
+.wrangler
 
-# next
-
-build
-.next
+*.sqlite
 

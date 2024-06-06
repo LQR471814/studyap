@@ -28,7 +28,7 @@ DATABASE_AUTH_TOKEN="..."
 
 - `dev:ui` - run the vite devserver.
 - `dev:api` - run the cloudflare workers devserver.
-- `test` - run unit tests
+- `test` - run unit tests **(note: as of 2024 you have to run this like `NODE_OPTIONS="--experimental-vm-modules" pnpm test`), this is due to some strange things with ESM/CJS**
 - `db:generate` - generates database sql migrations
 - `db:push` - pushes migrations to a database
 - `script:generate` - generates AP tests (ex. `pnpm script:generate -count 2`)

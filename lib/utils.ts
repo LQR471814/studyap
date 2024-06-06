@@ -44,14 +44,17 @@ export function generateRandomSegments(
 export function retryAsyncFn<I extends unknown[], O>(
   name: string,
   count: number,
-  callback: (...args: I) => Promise<O>
+  callback: (...args: I) => Promise<O>,
 ) {
   return async (...args: I): Promise<O> => {
     for (let i = 0; i < count; i++) {
       try {
         return await callback.apply(undefined, args)
       } catch (err) {
-        console.warn(`WARN: got error while executing ${name}, retrying...`, err)
+        console.warn(
+          `WARN: got error while executing ${name}, retrying...`,
+          err,
+        )
       }
     }
     throw new Error(`function ${name} failed ${count} times in a row.`)
@@ -75,5 +78,30 @@ export function ensurePrefix(prefix: string, str: string) {
     return str
   }
   return prefix + str
+}
+
+/**
+ * Creates a function that won't rerun unless its arguments change.
+ */
+export function memo<A extends unknown[], R>(
+  fn: (...args: A) => R,
+): (...args: A) => R {
+  let lastArgs: A | undefined
+  let memoized: R | undefined
+  return (...args: A): R => {
+    if (!lastArgs || lastArgs.length !== args.length || !memoized) {
+      lastArgs = args
+      memoized = fn(...args)
+      return memoized
+    }
+    for (let i = 0; i < args.length; i++) {
+      if (lastArgs[i] !== args[i]) {
+        lastArgs = args
+        memoized = fn(...args)
+        return memoized
+      }
+    }
+    return memoized
+  }
 }
 
