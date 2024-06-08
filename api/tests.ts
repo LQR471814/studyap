@@ -8,13 +8,14 @@ import {
   stimulus,
   subject,
   testAttempt,
+  testStimulus,
   unit,
 } from "@/lib/schema/schema"
 import { and, eq, inArray, isNotNull, isNull, or, sql } from "drizzle-orm"
 import { z } from "zod"
-import { t } from "./common"
-import zodToJsonSchema from "zod-to-json-schema"
+import { t } from "./trpc"
 import { retryAsyncFn } from "@/lib/utils"
+import type { LLM } from "@/lib/llm/core"
 
 export const createTestOptions = z.object({
   subject: z.number(),
@@ -211,14 +212,55 @@ export async function createTest(
   return await db.transaction(async (tx) => {
     const [attempt] = await tx
       .insert(testAttempt)
-      .values({ userEmail, subjectId: options.subject })
+      .values({
+        userEmail,
+        subjectId: options.subject,
+        createdAt: new Date(),
+        complete: false,
+      })
       .returning()
 
+    const testStimuli: (typeof testStimulus)["$inferInsert"][] = []
+    let groupNumber = 0
+    // undefined is the initial value, because the first question's stimulus must
+    // always be added
+    // null represents no stimulus, but should still be added to preserve the correct order
+    let lastStimulusId: number | null | undefined
+    for (const question of mcqs) {
+      if (question.stimulusId === lastStimulusId) {
+        continue
+      }
+      testStimuli.push({
+        testId: attempt.id,
+        groupNumber,
+        stimulusId: question.stimulusId,
+      })
+      lastStimulusId = question.stimulusId
+      groupNumber++
+    }
+    lastStimulusId = undefined
+    for (const question of frqs) {
+      if (question.stimulusId === lastStimulusId) {
+        continue
+      }
+      testStimuli.push({
+        testId: attempt.id,
+        groupNumber,
+        stimulusId: question.stimulusId,
+      })
+      lastStimulusId = question.stimulusId
+      groupNumber++
+    }
+    await tx.insert(testStimulus).values(testStimuli)
+
+    let questionNo = 0
     if (options.mcqCount > 0) {
       await tx.insert(mcqAttempt).values(
         mcqs.map((q) => ({
           testId: attempt.id,
+          stimulusId: q.stimulusId,
           questionId: q.id,
+          questionNumber: ++questionNo,
         })),
       )
     }
@@ -226,13 +268,201 @@ export async function createTest(
       await tx.insert(frqAttempt).values(
         frqs.map((q) => ({
           testId: attempt.id,
+          stimulusId: q.stimulusId,
           questionId: q.id,
+          questionNumber: ++questionNo,
         })),
       )
     }
 
     return attempt.id
   })
+}
+
+export async function evalMCQs(db: DB, questionIds: number[]) {
+  const responded = () =>
+    db
+      .select({
+        questionId: mcqAttempt.questionId,
+        testId: mcqAttempt.testId,
+      })
+      .from(mcqAttempt)
+      .where(
+        and(
+          inArray(mcqAttempt.questionId, questionIds),
+          isNull(mcqAttempt.scoredPoints),
+          isNotNull(mcqAttempt.response),
+        ),
+      )
+
+  // mcqAttempts that ended up correct
+  const correctAttempts = await responded().innerJoin(
+    questionChoice,
+    and(
+      eq(questionChoice.id, mcqAttempt.response),
+      eq(questionChoice.correct, true),
+    ),
+  )
+
+  await db
+    .update(mcqAttempt)
+    .set({ scoredPoints: 1 })
+    .where(
+      or(
+        ...correctAttempts.map((a) =>
+          and(
+            eq(mcqAttempt.questionId, a.questionId),
+            eq(mcqAttempt.testId, a.testId),
+          ),
+        ),
+      ),
+    )
+
+  // mcqAttempts that ended up incorrect
+  const incorrectAttempts = await responded().innerJoin(
+    questionChoice,
+    and(
+      eq(questionChoice.id, mcqAttempt.response),
+      eq(questionChoice.correct, false),
+    ),
+  )
+
+  await db
+    .update(mcqAttempt)
+    .set({ scoredPoints: 0 })
+    .where(
+      or(
+        ...incorrectAttempts.map((a) =>
+          and(
+            eq(mcqAttempt.questionId, a.questionId),
+            eq(mcqAttempt.testId, a.testId),
+          ),
+        ),
+      ),
+    )
+}
+
+export async function evalFRQs(db: DB, llm: LLM, questionIds: number[]) {
+  const responded = await db
+    .select({
+      questionId: frqAttempt.questionId,
+      testId: frqAttempt.testId,
+      response: frqAttempt.response,
+      question: question.content,
+      stimulus: stimulus.content,
+      attribution: stimulus.attribution,
+      imageAltText: stimulus.imageAltText,
+    })
+    .from(frqAttempt)
+    .where(
+      and(
+        inArray(frqAttempt.questionId, questionIds),
+        isNull(frqAttempt.scoredPoints),
+        isNotNull(frqAttempt.response),
+      ),
+    )
+    .innerJoin(question, eq(question.id, frqAttempt.questionId))
+    .innerJoin(stimulus, eq(stimulus.id, question.stimulusId))
+
+  const gradingResponse = z
+    .object({
+      earned: z
+        .number()
+        .describe(
+          "The amount of points the student got on this task point. This usually should be 1 or 2 points.",
+        ),
+      explanation: z
+        .string()
+        .describe(
+          "An explanation on why the student got the point, do quote phrases and sentences from the student's response.",
+        ),
+    })
+    .array()
+    .describe(
+      "A list of requirements the student response must fulfill corresponding to the grading guidelines, each requirement that is fulfilled earns the student some points.",
+    )
+
+  const grade = retryAsyncFn(
+    "grade response",
+    5,
+    async (stimulus: string, question: string, response: string) => {
+      const res = await llm.generate({
+        model: "big",
+        systemText: "You are a grader employed by the Collegeboard to grade the responses to free response questions in the AP US History exam.",
+        messages: [
+          {
+            role: "user",
+            content: `Grade the following response. Make sure to call the score_response tool.\nQuestion stimulus: ${stimulus}\nQuestion: ${question}\nStudent response: ${response}`,
+          },
+        ],
+        functions: {
+          score_response: {
+            description: "Score the student's response.",
+            returns: gradingResponse,
+          }
+        }
+      })
+      const completion = res.returns?.score_response
+      if (!completion) {
+        throw new Error("empty completion!")
+      }
+      return completion
+    },
+  )
+
+  await Promise.all(
+    responded.map(async (r) => {
+      const scored = await grade(
+        `${stimulus.imageAltText
+          ? "This is an image with the following description: "
+          : ""
+        }${stimulus.imageAltText}\n- ${stimulus.attribution}`,
+        r.question,
+        r.response ?? "",
+      )
+
+      let totalScored = 0
+      for (const val of scored) {
+        totalScored += val.earned
+      }
+
+      await db
+        .update(frqAttempt)
+        .set({
+          scoredPoints: totalScored,
+          scoringNotes: scored
+            .map((s) => `- +${s.earned} pt - ${s.explanation}`)
+            .join("\n"),
+        })
+        .where(eq(frqAttempt.questionId, r.questionId))
+    }),
+  )
+}
+
+export async function evalTest(db: DB, llm: LLM, testId: number) {
+  const mcqQuestionIds = await db
+    .select({ questionId: mcqAttempt.questionId })
+    .from(mcqAttempt)
+    .where(eq(mcqAttempt.testId, testId))
+  const frqQuestionIds = await db
+    .select({ questionId: frqAttempt.questionId })
+    .from(frqAttempt)
+    .where(eq(frqAttempt.testId, testId))
+
+  await evalMCQs(
+    db,
+    mcqQuestionIds.map((r) => r.questionId),
+  )
+  await evalFRQs(
+    db,
+    llm,
+    frqQuestionIds.map((r) => r.questionId),
+  )
+
+  await db
+    .update(testAttempt)
+    .set({ complete: true })
+    .where(eq(testAttempt.id, testId))
 }
 
 export const testsRouter = t.router({
@@ -274,8 +504,59 @@ export const testsRouter = t.router({
     }),
   deleteTest: t.procedure
     .input(z.number().describe("test.id"))
-    .query(({ ctx: { db }, input }) => {
-      return db.delete(testAttempt).where(eq(testAttempt.id, input))
+    .query(async ({ ctx: { db }, input }) => {
+      await db.delete(testAttempt).where(eq(testAttempt.id, input))
+    }),
+  listIncompleteTests: t.procedure.query(({ ctx: { db, userEmail } }) => {
+    return db
+      .select({
+        id: testAttempt.id,
+        createdAt: testAttempt.createdAt,
+        subjectName: subject.name,
+        subjectId: subject.id,
+      })
+      .from(testAttempt)
+      .where(
+        and(
+          eq(testAttempt.userEmail, userEmail),
+          eq(testAttempt.complete, false),
+        ),
+      )
+      .innerJoin(subject, eq(testAttempt.subjectId, subject.id))
+  }),
+  getTest: t.procedure
+    .input(z.number().describe("testAttempt.id"))
+    .query(async ({ ctx: { db }, input }) => {
+      const test = await db.query.testAttempt.findFirst({
+        with: {
+          subject: true,
+          testStimulus: {
+            with: {
+              stimulus: true,
+              mcqAttempt: {
+                with: {
+                  question: {
+                    with: {
+                      questionChoice: true,
+                    },
+                  },
+                },
+              },
+              frqAttempt: {
+                with: {
+                  question: true,
+                },
+              },
+            },
+            orderBy: [testStimulus.groupNumber],
+          },
+        },
+        where: eq(testAttempt.id, input),
+      })
+      if (!test) {
+        throw new Error(`could not find test with id '${input}'`)
+      }
+      return test
     }),
   fillMCQs: t.procedure
     .input(
@@ -290,76 +571,28 @@ export const testsRouter = t.router({
       }),
     )
     .mutation(async ({ ctx: { db }, input }) => {
-      await db.insert(mcqAttempt).values(
-        input.questions.map((r) => ({
-          testId: input.testAttemptId,
-          questionId: r.questionId,
-          response: r.questionChoiceId,
-        })),
-      )
+      await db.transaction((tx) => {
+        return Promise.all(
+          input.questions.map((r) =>
+            tx
+              .update(mcqAttempt)
+              .set({
+                response: r.questionChoiceId,
+              })
+              .where(
+                and(
+                  eq(mcqAttempt.testId, input.testAttemptId),
+                  eq(mcqAttempt.questionId, r.questionId),
+                ),
+              ),
+          ),
+        )
+      })
     }),
   evalMCQs: t.procedure
     .input(z.number().array().describe("list of question.ids"))
-    .mutation(async ({ ctx: { db }, input }) => {
-      const responded = db
-        .select({
-          questionId: mcqAttempt.questionId,
-          testId: mcqAttempt.testId,
-        })
-        .from(mcqAttempt)
-        .where(
-          and(
-            inArray(mcqAttempt.questionId, input),
-            isNull(mcqAttempt.scoredPoints),
-            isNotNull(mcqAttempt.response),
-          ),
-        )
-
-      // mcqAttempts that ended up correct
-      const correctAttempts = await responded.innerJoin(
-        questionChoice,
-        and(
-          eq(questionChoice.id, mcqAttempt.response),
-          eq(questionChoice.correct, true),
-        ),
-      )
-
-      await db
-        .update(mcqAttempt)
-        .set({ scoredPoints: 1 })
-        .where(
-          or(
-            ...correctAttempts.map((a) =>
-              and(
-                eq(mcqAttempt.questionId, a.questionId),
-                eq(mcqAttempt.testId, a.testId),
-              ),
-            ),
-          ),
-        )
-
-      // mcqAttempts that ended up incorrect
-      const incorrectAttempts = await responded.innerJoin(
-        questionChoice,
-        and(
-          eq(questionChoice.id, mcqAttempt.response),
-          eq(questionChoice.correct, false),
-        ),
-      )
-
-      await db
-        .update(mcqAttempt)
-        .set({ scoredPoints: 0 })
-        .where(
-          or(
-            ...incorrectAttempts.map((a) =>
-              and(
-                eq(mcqAttempt.questionId, a.questionId),
-                eq(mcqAttempt.testId, a.testId),
-              ),
-            ),
-          ),
-        )
+    .mutation(({ ctx: { db }, input }) => {
+      return evalMCQs(db, input)
     }),
   fillFRQs: t.procedure
     .input(
@@ -384,144 +617,14 @@ export const testsRouter = t.router({
     }),
   evalFRQs: t.procedure
     .input(z.number().array().describe("list of frqAttempt.ids"))
-    .mutation(async ({ ctx: { db, openai }, input }) => {
-      const responded = await db
-        .select({
-          questionId: frqAttempt.questionId,
-          testId: frqAttempt.testId,
-          response: frqAttempt.response,
-          question: question.content,
-          stimulus: stimulus.content,
-          attribution: stimulus.attribution,
-          imageAltText: stimulus.imageAltText,
-        })
-        .from(frqAttempt)
-        .where(
-          and(
-            inArray(frqAttempt.questionId, input),
-            isNull(frqAttempt.scoredPoints),
-            isNotNull(frqAttempt.response),
-          ),
-        )
-        .innerJoin(question, eq(question.id, frqAttempt.questionId))
-        .innerJoin(stimulus, eq(stimulus.id, question.stimulusId))
-
-      const gradingResponse = z
-        .object({
-          earned: z
-            .number()
-            .describe(
-              "The amount of points the student got on this task point. This usually should be 1 or 2 points.",
-            ),
-          explanation: z
-            .string()
-            .describe(
-              "An explanation on why the student got the point, do quote phrases and sentences from the student's response.",
-            ),
-        })
-        .array()
-        .describe(
-          "A list of requirements the student response must fulfill corresponding to the grading guidelines, each requirement that is fulfilled earns the student some points.",
-        )
-      const gradingResponseSchema = zodToJsonSchema(gradingResponse)
-
-      const grade = retryAsyncFn(
-        "grade response",
-        5,
-        async (stimulus: string, question: string, response: string) => {
-          const res = await openai.chat.completions.create({
-            model: "gpt-4",
-            messages: [
-              {
-                role: "system",
-                content:
-                  "You are a grader employed by the Collegeboard to grade the responses to free response questions in the AP US History exam.",
-              },
-              {
-                role: "user",
-                content: `Grade the following response. Make sure to call the score_response tool.\nQuestion stimulus: ${stimulus}\nQuestion: ${question}\nStudent response: ${response}`,
-              },
-            ],
-            tools: [
-              {
-                type: "function",
-                function: {
-                  name: "score_response",
-                  description: "Score the student's response.",
-                  parameters: gradingResponseSchema,
-                },
-              },
-            ],
-          })
-          const completion = res.choices[0].message.content
-          if (!completion) {
-            throw new Error("empty completion!")
-          }
-          return gradingResponse.parse(JSON.parse(completion))
-        },
-      )
-
-      await Promise.all(
-        responded.map(async (r) => {
-          const scored = await grade(
-            `${
-              stimulus.imageAltText
-                ? "This is an image with the following description: "
-                : ""
-            }${stimulus.imageAltText}\n- ${stimulus.attribution}`,
-            r.question,
-            r.response ?? "",
-          )
-
-          let totalScored = 0
-          for (const val of scored) {
-            totalScored += val.earned
-          }
-
-          await db
-            .update(frqAttempt)
-            .set({
-              scoredPoints: totalScored,
-              scoringNotes: scored
-                .map((s) => `- +${s.earned} pt - ${s.explanation}`)
-                .join("\n"),
-            })
-            .where(eq(frqAttempt.questionId, r.questionId))
-        }),
-      )
+    .mutation(({ ctx: { db, llm }, input }) => {
+      return evalFRQs(db, llm, input)
     }),
-  listTests: t.procedure.query(({ ctx: { db, userEmail } }) => {
-    return db
-      .select()
-      .from(testAttempt)
-      .where(eq(testAttempt.userEmail, userEmail))
-  }),
-  getTest: t.procedure
+  evalTest: t.procedure
     .input(z.number().describe("testAttempt.id"))
-    .query(({ ctx: { db }, input }) => {
-      return db.query.testAttempt.findFirst({
-        with: {
-          mcqAttempt: {
-            with: {
-              question: {
-                with: {
-                  questionChoice: true,
-                  stimulus: true,
-                },
-              },
-            },
-          },
-          frqAttempt: {
-            with: {
-              question: {
-                with: {
-                  stimulus: true,
-                },
-              },
-            },
-          },
-        },
-        where: eq(testAttempt.id, input),
-      })
+    .mutation(({ ctx: { db, llm }, input }) => {
+      return evalTest(db, llm, input)
     }),
 })
+
+export type Test = Awaited<ReturnType<(typeof testsRouter)["getTest"]>>

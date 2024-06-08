@@ -1,6 +1,6 @@
 import { question, questionChoice, questionUnit } from "@/lib/schema/schema"
 import { generateSubject } from "./subject"
-import { Context } from "../context"
+import type { Context } from "../context"
 import { generateUnits } from "./units"
 import { generateStimuli } from "./stimuli"
 import { memo } from "@/lib/utils"

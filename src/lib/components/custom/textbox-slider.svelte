@@ -16,7 +16,7 @@
         bind:value
     />
     <Slider
-        class="min-w-[150px]"
+        class="min-w-[100px]"
         value={[value]}
         {max}
         {step}

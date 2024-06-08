@@ -1,23 +1,29 @@
 CREATE TABLE `frqAttempt` (
 	`testId` integer NOT NULL,
+	`stimulusId` integer,
 	`questionId` integer NOT NULL,
+	`questionNumber` integer NOT NULL,
 	`scoredPoints` integer,
 	`scoringNotes` text,
 	`response` text,
-	PRIMARY KEY(`questionId`, `testId`),
 	FOREIGN KEY (`testId`) REFERENCES `testAttempt`(`id`) ON UPDATE cascade ON DELETE cascade,
-	FOREIGN KEY (`questionId`) REFERENCES `question`(`id`) ON UPDATE cascade ON DELETE cascade
+	FOREIGN KEY (`stimulusId`) REFERENCES `stimulus`(`id`) ON UPDATE cascade ON DELETE cascade,
+	FOREIGN KEY (`questionId`) REFERENCES `question`(`id`) ON UPDATE cascade ON DELETE cascade,
+	FOREIGN KEY (`testId`,`stimulusId`) REFERENCES `testStimulus`(`testId`,`stimulusId`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
 CREATE TABLE `mcqAttempt` (
 	`testId` integer NOT NULL,
+	`stimulusId` integer,
 	`questionId` integer NOT NULL,
+	`questionNumber` integer NOT NULL,
 	`scoredPoints` integer,
 	`response` integer,
-	PRIMARY KEY(`questionId`, `testId`),
 	FOREIGN KEY (`testId`) REFERENCES `testAttempt`(`id`) ON UPDATE cascade ON DELETE cascade,
+	FOREIGN KEY (`stimulusId`) REFERENCES `stimulus`(`id`) ON UPDATE cascade ON DELETE cascade,
 	FOREIGN KEY (`questionId`) REFERENCES `question`(`id`) ON UPDATE cascade ON DELETE cascade,
-	FOREIGN KEY (`response`) REFERENCES `questionChoice`(`id`) ON UPDATE cascade ON DELETE cascade
+	FOREIGN KEY (`response`) REFERENCES `questionChoice`(`id`) ON UPDATE cascade ON DELETE cascade,
+	FOREIGN KEY (`testId`,`stimulusId`) REFERENCES `testStimulus`(`testId`,`stimulusId`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
 CREATE TABLE `question` (
@@ -74,8 +80,19 @@ CREATE TABLE `testAttempt` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`subjectId` integer NOT NULL,
 	`userEmail` text NOT NULL,
+	`createdAt` integer NOT NULL,
+	`complete` integer NOT NULL,
 	FOREIGN KEY (`subjectId`) REFERENCES `subject`(`id`) ON UPDATE cascade ON DELETE cascade,
 	FOREIGN KEY (`userEmail`) REFERENCES `user`(`email`) ON UPDATE cascade ON DELETE cascade
+);
+--> statement-breakpoint
+CREATE TABLE `testStimulus` (
+	`testId` integer NOT NULL,
+	`stimulusId` integer,
+	`groupNumber` integer NOT NULL,
+	PRIMARY KEY(`stimulusId`, `testId`),
+	FOREIGN KEY (`testId`) REFERENCES `testAttempt`(`id`) ON UPDATE cascade ON DELETE cascade,
+	FOREIGN KEY (`stimulusId`) REFERENCES `stimulus`(`id`) ON UPDATE cascade ON DELETE cascade
 );
 --> statement-breakpoint
 CREATE TABLE `unit` (
@@ -86,6 +103,5 @@ CREATE TABLE `unit` (
 );
 --> statement-breakpoint
 CREATE TABLE `user` (
-	`email` text PRIMARY KEY NOT NULL,
-	`name` text NOT NULL
+	`email` text PRIMARY KEY NOT NULL
 );

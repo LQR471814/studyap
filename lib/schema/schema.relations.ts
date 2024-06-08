@@ -1,19 +1,31 @@
 import { relations } from "drizzle-orm";
-import { frqAttempt, mcqAttempt, question, questionChoice, questionFormat, questionGradingGuidelines, questionUnit, stimulus, subject, testAttempt, unit, user } from "./schema";
+import { frqAttempt, mcqAttempt, question, questionChoice, questionFormat, questionGradingGuidelines, questionUnit, stimulus, subject, testAttempt, testStimulus, unit, user } from "./schema";
 export const frqAttemptRelations = relations(frqAttempt, ({ one, many }) => ({
     testAttempt: one(testAttempt, {
         fields: [frqAttempt.testId],
         references: [testAttempt.id]
     }),
+    stimulus: one(stimulus, {
+        fields: [frqAttempt.stimulusId],
+        references: [stimulus.id]
+    }),
     question: one(question, {
         fields: [frqAttempt.questionId],
         references: [question.id]
+    }),
+    testStimulus: one(testStimulus, {
+        fields: [frqAttempt.testId, frqAttempt.stimulusId],
+        references: [testStimulus.testId, testStimulus.stimulusId]
     })
 }));
 export const mcqAttemptRelations = relations(mcqAttempt, ({ one, many }) => ({
     testAttempt: one(testAttempt, {
         fields: [mcqAttempt.testId],
         references: [testAttempt.id]
+    }),
+    stimulus: one(stimulus, {
+        fields: [mcqAttempt.stimulusId],
+        references: [stimulus.id]
     }),
     question: one(question, {
         fields: [mcqAttempt.questionId],
@@ -22,6 +34,10 @@ export const mcqAttemptRelations = relations(mcqAttempt, ({ one, many }) => ({
     questionChoice: one(questionChoice, {
         fields: [mcqAttempt.response],
         references: [questionChoice.id]
+    }),
+    testStimulus: one(testStimulus, {
+        fields: [mcqAttempt.testId, mcqAttempt.stimulusId],
+        references: [testStimulus.testId, testStimulus.stimulusId]
     })
 }));
 export const questionRelations = relations(question, ({ one, many }) => ({
@@ -63,11 +79,14 @@ export const questionUnitRelations = relations(questionUnit, ({ one, many }) => 
     })
 }));
 export const stimulusRelations = relations(stimulus, ({ one, many }) => ({
+    frqAttempt: many(frqAttempt),
+    mcqAttempt: many(mcqAttempt),
     question: many(question),
     subject: one(subject, {
         fields: [stimulus.subjectId],
         references: [subject.id]
-    })
+    }),
+    testStimulus: many(testStimulus)
 }));
 export const subjectRelations = relations(subject, ({ one, many }) => ({
     question: many(question),
@@ -85,6 +104,19 @@ export const testAttemptRelations = relations(testAttempt, ({ one, many }) => ({
     user: one(user, {
         fields: [testAttempt.userEmail],
         references: [user.email]
+    }),
+    testStimulus: many(testStimulus)
+}));
+export const testStimulusRelations = relations(testStimulus, ({ one, many }) => ({
+    frqAttempt: many(frqAttempt),
+    mcqAttempt: many(mcqAttempt),
+    testAttempt: one(testAttempt, {
+        fields: [testStimulus.testId],
+        references: [testAttempt.id]
+    }),
+    stimulus: one(stimulus, {
+        fields: [testStimulus.stimulusId],
+        references: [stimulus.id]
     })
 }));
 export const unitRelations = relations(unit, ({ one, many }) => ({

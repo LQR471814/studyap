@@ -3,12 +3,12 @@ import { createClient } from "@libsql/client"
 import { GenericContainer, Wait } from "testcontainers"
 import { migrate } from "drizzle-orm/sqlite-proxy/migrator"
 import { join, dirname } from "node:path"
-import OpenAI from "openai"
-import { t } from "../common"
+import { t } from "../trpc"
 import { testsRouter } from "../tests"
 import { generateAll } from "@/cmd/generator/dummy"
 import { user } from "@/lib/schema/schema"
 import { context } from "@/cmd/generator/context"
+import { isomorphicLLM, isomorphicLLMFromEnv } from "@/lib/llm/isomorphic"
 
 export async function setupDummyDB() {
   // setup sqld instance and client
@@ -40,20 +40,17 @@ export async function setupDummyDB() {
   const testEmail = "test.user@email.com"
   await db.insert(user).values({
     email: testEmail,
-    name: "test user",
   })
 
   // setup openai client
-  const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-  })
+  const llm = isomorphicLLMFromEnv()
 
   // setup generation context
-  const dummyData = await generateAll(context(db, openai))
+  const dummyData = await generateAll(context(db, llm))
 
   // setup local trpc API
   const createApi = t.createCallerFactory(testsRouter)
-  const api = createApi({ userEmail: testEmail, db, openai })
+  const api = createApi({ userEmail: testEmail, db, llm })
 
   return { db, api, testEmail, ...dummyData }
 }

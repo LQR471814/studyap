@@ -1,6 +1,6 @@
 import { unit } from "@/lib/schema/schema"
 import { generateSubject } from "./subject"
-import { Context } from "../context"
+import type { Context } from "../context"
 import { memo } from "@/lib/utils"
 
 export const generateUnits = memo(async (ctx: Context) => {

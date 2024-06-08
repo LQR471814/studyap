@@ -21,7 +21,7 @@
     "rules": {
       "style": {
         "useConst": "off",
-        "useImportType": "off"
+        "noNonNullAssertion": "off"
       }
     }
   }

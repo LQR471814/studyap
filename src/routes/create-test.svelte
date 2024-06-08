@@ -4,7 +4,8 @@ import { api } from "../api"
 import TextboxSlider from "@ui-lib/components/custom/textbox-slider.svelte"
 import MultiSelect from "svelte-multiselect"
 import { Button } from "@ui-lib/components/ui/button"
-import { createEventDispatcher } from "svelte"
+import { fly } from "svelte/transition"
+import { push } from "svelte-spa-router"
 
 // subject
 type Subject = {
@@ -42,7 +43,6 @@ $: {
   if (!selectedSubject) {
     break $
   }
-  console.log("change", selectedSubject)
   api.tests.listUnits
     .query(selectedSubject.id)
     .then((value) => {
@@ -75,10 +75,6 @@ $: {
 let mcqCount = 0
 let frqCount = 0
 
-const dispatcher = createEventDispatcher<{
-  submit: { testId: number }
-}>()
-
 // submission logic
 let submitting = false
 async function submit() {
@@ -93,7 +89,7 @@ async function submit() {
       units: selectedUnits.map((u) => u.value.id),
       subject: selectedSubject.id,
     })
-    dispatcher("submit", { testId: res })
+    push(`/take_test/${res}`)
   } catch (err) {
     console.error(err)
   }
@@ -101,9 +97,9 @@ async function submit() {
 }
 </script>
 
-<div class="flex h-full">
+<div class="flex h-full" in:fly={{ y: 10 }}>
     <div class="flex flex-col gap-3 m-auto" style:--sms-max-width="515px">
-        <h3 class="text-sm">Subject</h3>
+        <h3 class="text-sm font-medium">Subject</h3>
         <Select.Root
             portal={null}
             onSelectedChange={(e) => {
@@ -144,7 +140,7 @@ async function submit() {
         </Select.Root>
 
         {#if units}
-            <h3 class="text-sm">Filter units</h3>
+            <h3 class="text-sm font-medium">Filter specific units</h3>
             <MultiSelect
                 bind:selected={selectedUnits}
                 placeholder="Select units..."
@@ -157,7 +153,7 @@ async function submit() {
 
         {#if availableQuestions}
             <div class="flex flex-col gap-2">
-                <p class="text-sm">MCQ problems</p>
+                <p class="text-sm font-medium">Multiple choice questions</p>
                 <div class="flex gap-5 items-center">
                     <TextboxSlider
                         placeholder="MCQ count"
@@ -166,7 +162,7 @@ async function submit() {
                     />
                     <span>Available: {availableQuestions.mcqs}</span>
                 </div>
-                <p class="text-sm">FRQ problems</p>
+                <p class="text-sm font-medium">Free response questions</p>
                 <div class="flex gap-5 items-center">
                     <TextboxSlider
                         placeholder="FRQ count"

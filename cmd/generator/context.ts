@@ -1,18 +1,18 @@
 import type { DB } from "@/lib/db"
-import type OpenAI from "openai"
+import type { LLM } from "@/lib/llm/core"
 import PQueue from "p-queue"
 
 export type Context = {
-  openai: OpenAI
-  openaiQueue: PQueue
+  llm: LLM
+  llmQueue: PQueue
   db: DB
 }
 
-export function context(db: DB, openai: OpenAI) {
+export function context(db: DB, llm: LLM): Context {
   return {
-    openai,
+    llm,
     db,
-    openaiQueue: new PQueue({
+    llmQueue: new PQueue({
       concurrency: 4,
       autoStart: true,
       // 1 minute

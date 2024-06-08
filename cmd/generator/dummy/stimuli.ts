@@ -1,5 +1,5 @@
 import { stimulus } from "@/lib/schema/schema"
-import { Context } from "../context"
+import type { Context } from "../context"
 import { generateSubject } from "./subject"
 import { generateUnits } from "./units"
 import { memo } from "@/lib/utils"

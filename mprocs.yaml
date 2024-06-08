@@ -1,0 +1,7 @@
+procs:
+  ui:
+    shell: "pnpm run dev:ui"
+  api:
+    shell: "pnpm run dev:api"
+  sqld:
+    shell: "docker compose up"

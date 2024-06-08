@@ -1,13 +1,13 @@
-import esMain from "es-main"
-import { generateSubject } from "./subject"
-import { Context, context } from "../context"
 import { createDB } from "@/lib/db"
+import { isomorphicLLMFromEnv } from "@/lib/llm/isomorphic"
 import { createClient } from "@libsql/client"
-import OpenAI from "openai"
-import { generateUnits } from "./units"
-import { generateStimuli } from "./stimuli"
-import { generateMcqs } from "./mcq"
+import esMain from "es-main"
+import { type Context, context } from "../context"
 import { generateFrqs } from "./frq"
+import { generateMcqs } from "./mcq"
+import { generateStimuli } from "./stimuli"
+import { generateSubject } from "./subject"
+import { generateUnits } from "./units"
 
 export * from "./subject"
 export * from "./units"
@@ -30,7 +30,8 @@ if (esMain(import.meta)) {
       url: "http://127.0.0.1:8080",
     }),
   )
-  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
-  generateAll(context(db, openai))
+  const llm = isomorphicLLMFromEnv()
+  await generateAll(context(db, llm))
+  console.log("added dummy data successfully")
   process.exit(0)
 }

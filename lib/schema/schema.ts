@@ -1,4 +1,10 @@
-import { sqliteTable, int, text, primaryKey } from "drizzle-orm/sqlite-core"
+import {
+  sqliteTable,
+  int,
+  text,
+  primaryKey,
+  foreignKey,
+} from "drizzle-orm/sqlite-core"
 
 const CASCADE = {
   onDelete: "cascade",
@@ -7,7 +13,6 @@ const CASCADE = {
 
 export const user = sqliteTable("user", {
   email: text("email").notNull().primaryKey(),
-  name: text("name").notNull(),
 })
 
 export const testAttempt = sqliteTable("testAttempt", {
@@ -18,7 +23,23 @@ export const testAttempt = sqliteTable("testAttempt", {
   userEmail: text("userEmail")
     .notNull()
     .references(() => user.email, CASCADE),
+  createdAt: int("createdAt", { mode: "timestamp" }).notNull(),
+  complete: int("complete", { mode: "boolean" }).notNull(),
 })
+
+export const testStimulus = sqliteTable(
+  "testStimulus",
+  {
+    testId: int("testId")
+      .notNull()
+      .references(() => testAttempt.id, CASCADE),
+    stimulusId: int("stimulusId").references(() => stimulus.id, CASCADE),
+    groupNumber: int("groupNumber").notNull(),
+  },
+  (table) => ({
+    pkey: primaryKey({ columns: [table.testId, table.stimulusId] }),
+  }),
+)
 
 export const mcqAttempt = sqliteTable(
   "mcqAttempt",
@@ -26,14 +47,19 @@ export const mcqAttempt = sqliteTable(
     testId: int("testId")
       .notNull()
       .references(() => testAttempt.id, CASCADE),
+    stimulusId: int("stimulusId").references(() => stimulus.id, CASCADE),
     questionId: int("questionId")
       .notNull()
       .references(() => question.id, CASCADE),
+    questionNumber: int("questionNumber").notNull(),
     scoredPoints: int("scoredPoints"),
     response: int("response").references(() => questionChoice.id, CASCADE),
   },
   (table) => ({
-    pkey: primaryKey({ columns: [table.testId, table.questionId] }),
+    testStimulusId: foreignKey({
+      columns: [table.testId, table.stimulusId],
+      foreignColumns: [testStimulus.testId, testStimulus.stimulusId],
+    }),
   }),
 )
 
@@ -43,15 +69,20 @@ export const frqAttempt = sqliteTable(
     testId: int("testId")
       .notNull()
       .references(() => testAttempt.id, CASCADE),
+    stimulusId: int("stimulusId").references(() => stimulus.id, CASCADE),
     questionId: int("questionId")
       .notNull()
       .references(() => question.id, CASCADE),
+    questionNumber: int("questionNumber").notNull(),
     scoredPoints: int("scoredPoints"),
     scoringNotes: text("scoringNotes"),
     response: text("response"),
   },
   (table) => ({
-    pkey: primaryKey({ columns: [table.testId, table.questionId] }),
+    testStimulusId: foreignKey({
+      columns: [table.testId, table.stimulusId],
+      foreignColumns: [testStimulus.testId, testStimulus.stimulusId],
+    }),
   }),
 )
 

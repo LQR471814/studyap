@@ -4,6 +4,7 @@
     import BookIcon from "~icons/ri/book-open-line";
     import StatisticCard from "@ui-lib/components/custom/statistic-card.svelte";
     import { format } from "date-fns";
+    import { fly } from "svelte/transition";
 
     type TestAttempt = {
         subject: string;
@@ -28,7 +29,7 @@
     ];
 </script>
 
-<div class="flex flex-col gap-10">
+<div class="flex flex-col gap-10 p-5" in:fly={{ y: 10 }}>
     <h1 class="text-2xl">Hello student 👋🏼,</h1>
     <div class="flex gap-5">
         <div class="flex gap-10 justify-evenly w-full py-3 px-12">

@@ -20,7 +20,7 @@ test("createTest", async () => {
     mcqCount: mcqs.length,
   })
 
-  const listed = await api.listTests()
+  const listed = await api.listIncompleteTests()
   expect(listed.find(l => l.id === testAttemptId1)).toBeDefined()
 
   const [testAttempt] = listed
