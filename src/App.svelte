@@ -1,21 +1,22 @@
 <script lang="ts">
+import Router, { location, push } from "svelte-spa-router"
+import { get } from "svelte/store"
 import CreateIcon from "~icons/ri/add-circle-line"
 import HistoryIcon from "~icons/ri/history-fill"
 import PencilIcon from "~icons/ri/pencil-line"
 import CogIcon from "~icons/ri/settings-line"
-import CreateTest from "./routes/create-test.svelte"
-import TestSelector from "./routes/take-test/selector.svelte"
-import TestHistory from "./routes/test-history.svelte"
-import TakeTest from "./routes/take-test/test/entrypoint.svelte"
-import Router, { location, push } from "svelte-spa-router"
-import { get } from "svelte/store"
 import RouteButton from "./RouteButton.svelte"
+import CreateTest from "./routes/create-test.svelte"
+import TestsInProgress from "./routes/tests-in-progress.svelte"
+import TestEntrypoint from "./routes/take-test/entrypoint.svelte"
+import TestHistory from "./routes/test-history.svelte"
 
 const routes = {
-  "/test_history": TestHistory,
   "/create_test": CreateTest,
-  "/take_test": TestSelector,
-  "/take_test/:test_id": TakeTest,
+  "/take_test": TestsInProgress,
+  "/take_test/:test_id": TestEntrypoint,
+  "/test_history": TestHistory,
+  "/test_history/:test_id": TestEntrypoint,
 }
 
 if (get(location) === "/") {

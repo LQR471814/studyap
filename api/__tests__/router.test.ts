@@ -21,17 +21,21 @@ test("createTest", async () => {
   })
 
   const listed = await api.listIncompleteTests()
-  expect(listed.find(l => l.id === testAttemptId1)).toBeDefined()
-
-  const [testAttempt] = listed
-  expect(testAttempt.userEmail).toEqual(testEmail)
+  expect(listed.find((l) => l.id === testAttemptId1)).toBeDefined()
 
   const test = await api.getTest(testAttemptId1)
   expect(test).toBeDefined()
   expect(test?.userEmail).toEqual(testEmail)
   expect(test?.subjectId).toEqual(subject.id)
-  expect(test?.frqAttempt.length).toEqual(frqs.length)
-  expect(test?.mcqAttempt.length).toEqual(mcqs.length)
+  expect(test.testStimulus.length).toBeGreaterThan(0)
+  expect(
+    test.testStimulus[0].mcqAttempt.length > 0 ||
+      test.testStimulus[0].frqAttempt.length > 0,
+  ).toBe(true)
+  expect(
+    test.testStimulus[1].mcqAttempt.length > 0 ||
+      test.testStimulus[1].frqAttempt.length > 0,
+  ).toBe(true)
 
   try {
     await api.createTest({
@@ -97,4 +101,3 @@ test("getAvailableQuestions", async () => {
   expect(withCreated.mcqs).toEqual(mcqs.length)
   await api.deleteTest(testAttemptId)
 })
-

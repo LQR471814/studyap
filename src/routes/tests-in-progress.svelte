@@ -5,7 +5,7 @@ import PlayIcon from "~icons/ri/play-mini-line"
 import { push } from "svelte-spa-router"
 import { fly } from "svelte/transition"
 
-const tests = api.tests.listIncompleteTests.query()
+const tests = api.completeTests.listIncompleteTests.query()
 </script>
 
 <div class="flex h-full" in:fly={{ y: 10 }}>
@@ -28,7 +28,10 @@ const tests = api.tests.listIncompleteTests.query()
                 {/each}
             </div>
         {:else}
-            <p class="m-auto">No tests have been created...</p>
+            <p class="m-auto">
+                You are not taking any tests at the moment... Create a new test
+                to begin!
+            </p>
         {/if}
     {:catch err}
         <p class="m-auto">ERROR: {err.message}</p>

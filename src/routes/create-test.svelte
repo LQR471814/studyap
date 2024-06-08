@@ -1,100 +1,100 @@
 <script lang="ts">
-import * as Select from "@ui-lib/components/ui/select"
-import { api } from "../api"
-import TextboxSlider from "@ui-lib/components/custom/textbox-slider.svelte"
-import MultiSelect from "svelte-multiselect"
-import { Button } from "@ui-lib/components/ui/button"
-import { fly } from "svelte/transition"
-import { push } from "svelte-spa-router"
+    import * as Select from "@ui-lib/components/ui/select";
+    import { api } from "../api";
+    import TextboxSlider from "@ui-lib/components/custom/textbox-slider.svelte";
+    import MultiSelect from "svelte-multiselect";
+    import { Button } from "@ui-lib/components/ui/button";
+    import { fly } from "svelte/transition";
+    import { push } from "svelte-spa-router";
 
-// subject
-type Subject = {
-  id: number
-  name: string
-}
-let subjects:
-  | {
-      value: Subject
-      label: string
-    }[]
-  | undefined = undefined
-$: {
-  api.tests.listSubjects
-    .query()
-    .then((value) => {
-      subjects = value.map((v) => ({
-        value: v,
-        label: v.name,
-      }))
-    })
-    .catch((err) => {
-      console.error(err)
-    })
-}
-let selectedSubject: Subject | undefined
+    // subject
+    type Subject = {
+        id: number;
+        name: string;
+    };
+    let subjects:
+        | {
+              value: Subject;
+              label: string;
+          }[]
+        | undefined = undefined;
+    $: {
+        api.manageTests.listSubjects
+            .query()
+            .then((value) => {
+                subjects = value.map((v) => ({
+                    value: v,
+                    label: v.name,
+                }));
+            })
+            .catch((err) => {
+                console.error(err);
+            });
+    }
+    let selectedSubject: Subject | undefined;
 
-// units
-type Unit = {
-  id: number
-  name: string
-}
-let units: Unit[] | undefined
-$: {
-  if (!selectedSubject) {
-    break $
-  }
-  api.tests.listUnits
-    .query(selectedSubject.id)
-    .then((value) => {
-      units = value
-    })
-    .catch((err) => console.error(err))
-}
-let selectedUnits: { value: Unit; label: string }[] = []
+    // units
+    type Unit = {
+        id: number;
+        name: string;
+    };
+    let units: Unit[] | undefined;
+    $: {
+        if (!selectedSubject) {
+            break $;
+        }
+        api.manageTests.listUnits
+            .query(selectedSubject.id)
+            .then((value) => {
+                units = value;
+            })
+            .catch((err) => console.error(err));
+    }
+    let selectedUnits: { value: Unit; label: string }[] = [];
 
-// available questions
-type AvailableQuestions = {
-  mcqs: number
-  frqs: number
-}
-let availableQuestions: AvailableQuestions | undefined
-$: {
-  if (!selectedSubject) {
-    break $
-  }
-  api.tests.getAvailableQuestions
-    .query({
-      subjectId: selectedSubject.id,
-      unitIds: selectedUnits.map((u) => u.value.id),
-    })
-    .then((value) => {
-      availableQuestions = value
-    })
-    .catch((err) => console.error(err))
-}
-let mcqCount = 0
-let frqCount = 0
+    // available questions
+    type AvailableQuestions = {
+        mcqs: number;
+        frqs: number;
+    };
+    let availableQuestions: AvailableQuestions | undefined;
+    $: {
+        if (!selectedSubject) {
+            break $;
+        }
+        api.manageTests.getAvailableQuestions
+            .query({
+                subjectId: selectedSubject.id,
+                unitIds: selectedUnits.map((u) => u.value.id),
+            })
+            .then((value) => {
+                availableQuestions = value;
+            })
+            .catch((err) => console.error(err));
+    }
+    let mcqCount = 0;
+    let frqCount = 0;
 
-// submission logic
-let submitting = false
-async function submit() {
-  if (!selectedSubject) {
-    return
-  }
-  submitting = true
-  try {
-    const res = await api.tests.createTest.mutate({
-      mcqCount,
-      frqCount,
-      units: selectedUnits.map((u) => u.value.id),
-      subject: selectedSubject.id,
-    })
-    push(`/take_test/${res}`)
-  } catch (err) {
-    console.error(err)
-  }
-  submitting = false
-}
+    // submission logic
+    let submitting = false;
+    async function submit() {
+        if (!selectedSubject) {
+            return;
+        }
+        submitting = true;
+        try {
+            const res = await api.manageTests.createTest.mutate({
+                mcqCount,
+                frqCount,
+                units: selectedUnits.map((u) => u.value.id),
+                subject: selectedSubject.id,
+            });
+            push(`/take_test/${res}`);
+        } catch (err) {
+            console.error(err);
+        }
+        submitting = false;
+    }
 </script>
 
 <div class="flex h-full" in:fly={{ y: 10 }}>

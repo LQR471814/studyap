@@ -4,11 +4,11 @@ import { GenericContainer, Wait } from "testcontainers"
 import { migrate } from "drizzle-orm/sqlite-proxy/migrator"
 import { join, dirname } from "node:path"
 import { t } from "../trpc"
-import { testsRouter } from "../tests"
 import { generateAll } from "@/cmd/generator/dummy"
 import { user } from "@/lib/schema/schema"
 import { context } from "@/cmd/generator/context"
-import { isomorphicLLM, isomorphicLLMFromEnv } from "@/lib/llm/isomorphic"
+import { isomorphicLLMFromEnv } from "@/lib/llm/isomorphic"
+import { router } from "../router"
 
 export async function setupDummyDB() {
   // setup sqld instance and client
@@ -49,7 +49,7 @@ export async function setupDummyDB() {
   const dummyData = await generateAll(context(db, llm))
 
   // setup local trpc API
-  const createApi = t.createCallerFactory(testsRouter)
+  const createApi = t.createCallerFactory(router)
   const api = createApi({ userEmail: testEmail, db, llm })
 
   return { db, api, testEmail, ...dummyData }

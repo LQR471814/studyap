@@ -7,6 +7,7 @@ import { api } from "@/src/api"
 import { push } from "svelte-spa-router"
 
 export let test: Test
+export let withCorrections: boolean
 
 let submitting = false
 const submit = async () => {

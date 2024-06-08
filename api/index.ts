@@ -1,8 +1,7 @@
 import { createDB } from "@/lib/db"
-import { masterRouter } from "./master"
+import { router } from "./router"
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch"
 import { createClient } from "@libsql/client"
-import OpenAI from "openai"
 import { isomorphicLLM } from "@/lib/llm/isomorphic"
 
 const CORS_HEADERS: Record<string, string> = {
@@ -38,7 +37,7 @@ export default {
     const res = await fetchRequestHandler({
       endpoint: "/",
       req: request,
-      router: masterRouter,
+      router: router,
       createContext() {
         return {
           db: database(env),
