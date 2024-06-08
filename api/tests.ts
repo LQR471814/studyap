@@ -384,7 +384,7 @@ export async function evalFRQs(db: DB, llm: LLM, questionIds: number[]) {
 
   const grade = retryAsyncFn(
     "grade response",
-    5,
+    1,
     async (stimulus: string, question: string, response: string) => {
       const res = await llm.generate({
         model: "big",
@@ -395,6 +395,7 @@ export async function evalFRQs(db: DB, llm: LLM, questionIds: number[]) {
             content: `Grade the following response. Make sure to call the score_response tool.\nQuestion stimulus: ${stimulus}\nQuestion: ${question}\nStudent response: ${response}`,
           },
         ],
+        mustUseFunctions: true,
         functions: {
           score_response: {
             description: "Score the student's response.",

@@ -15,6 +15,7 @@ export type GenerateRequest<F extends FunctionDefs> = {
   model: ModelType
   systemText?: string
   messages: Message[]
+  mustUseFunctions?: boolean
   functions: F
 }
 export type GenerateResult<F extends FunctionDefs> = {

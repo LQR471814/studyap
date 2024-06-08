@@ -21,16 +21,16 @@ export const generateFrqs = memo(async (ctx: Context) => {
   const questionObj = z.object({
     question: z
       .string()
-      .describe("The plain text question content of the free response question."),
-    guidelines: z
-      .string()
       .describe(
-        `Grading guidelines to be given to a grader on how they should score an arbitrary student response to the question.
+        "The plain text question content of the free response question.",
+      ),
+    guidelines: z.string().describe(
+      `Grading guidelines to be given to a grader on how they should score an arbitrary student response to the question.
 Example.
 - 1 pt for mentioning the presidential precedents set by George Washington.
 - 1 pt for mentioning WWII
 etc...`,
-      ),
+    ),
     totalPoints: z
       .number()
       .describe(
@@ -56,13 +56,15 @@ etc...`,
         llm.generate({
           model: "big",
           messages: messages,
-          systemText: "You are a high school history teacher employed by the collegeboard to create free response questions for the AP US History exam.",
+          systemText:
+            "You are a high school history teacher employed by the collegeboard to create free response questions for the AP US History exam.",
+          mustUseFunctions: true,
           functions: {
             generate_frq: {
               description:
                 "Create a free response question for the AP US History exam.",
               returns: questionObj,
-            }
+            },
           },
         }),
       )
@@ -167,4 +169,3 @@ etc...`,
 
   return generatedQuestions
 })
-

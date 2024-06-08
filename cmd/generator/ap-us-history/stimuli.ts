@@ -41,6 +41,7 @@ export const generateStimuli = memo(async (ctx: Context) => {
           systemText:
             "You are a high school history teacher employed by the collegeboard to create stimuli for questions on the AP US History exam.",
           messages,
+          mustUseFunctions: true,
           functions: {
             generate_stimulus: {
               description: "Create a stimulus for the AP US History exam.",

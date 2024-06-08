@@ -1,4 +1,3 @@
-import { on } from "node:events"
 import type { LLM } from "./core"
 import { Gemini } from "./google"
 import { Gpt } from "./openai"
@@ -27,9 +26,9 @@ export function isomorphicLLM(apiKeys: Partial<Services>): LLM {
 
   switch (service) {
     case "openai":
-      return new Gemini(apiKey!)
-    case "google":
       return new Gpt(apiKey!)
+    case "google":
+      return new Gemini(apiKey!)
   }
 }
 

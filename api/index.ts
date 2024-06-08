@@ -3,6 +3,7 @@ import { masterRouter } from "./master"
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch"
 import { createClient } from "@libsql/client"
 import OpenAI from "openai"
+import { isomorphicLLM } from "@/lib/llm/isomorphic"
 
 const CORS_HEADERS: Record<string, string> = {
   "Access-Control-Allow-Origin": "*",
@@ -11,7 +12,8 @@ const CORS_HEADERS: Record<string, string> = {
 }
 
 export type Env = {
-  OPENAI_API_KEY: string
+  OPENAI_API_KEY?: string
+  GOOGLE_API_KEY?: string
   DATABASE_URL?: string
   DATABASE_AUTH_TOKEN?: string
 }
@@ -41,8 +43,9 @@ export default {
         return {
           db: database(env),
           userEmail: "testuser@gmail.com",
-          openai: new OpenAI({
-            apiKey: env.OPENAI_API_KEY,
+          llm: isomorphicLLM({
+            openai: env.OPENAI_API_KEY,
+            google: env.GOOGLE_API_KEY,
           }),
         }
       },

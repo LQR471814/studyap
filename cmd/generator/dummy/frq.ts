@@ -28,7 +28,7 @@ export const generateFrqs = memo(async (ctx: Context) => {
     {
       question:
         "Briefly describe ONE perspective about women’s rights expressed in the image.",
-      guidelines: `- 1 pt. for mentioning the political party
+      guidelines: `- 1 pt. for mentioning the emergence of a political party
 - 1 pt. for mentioning increased political participation due to picketing and the political party`,
       totalPoints: 2,
       unitId: UNITS[6].id,

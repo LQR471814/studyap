@@ -1,4 +1,8 @@
-import { GoogleGenerativeAI } from "@google/generative-ai"
+import {
+  FunctionCallingMode,
+  FunctionDeclarationSchemaType,
+  GoogleGenerativeAI,
+} from "@google/generative-ai"
 import type {
   FunctionDefs,
   GenerateRequest,
@@ -7,7 +11,19 @@ import type {
   ModelType,
 } from "./core"
 import { zodToJsonSchema } from "zod-to-json-schema"
-import jsonSchemaToOpenapiSchema from "@openapi-contrib/json-schema-to-openapi-schema"
+
+function removeAdditionalProperties(val: unknown) {
+  if (typeof val === "object" && val !== null) {
+    if ("additionalProperties" in val) {
+      // biome-ignore lint/performance/noDelete: this is necessary
+      delete val.additionalProperties
+    }
+    for (const key in val) {
+      // biome-ignore lint/suspicious/noExplicitAny: trust me
+      removeAdditionalProperties((val as any)[key])
+    }
+  }
+}
 
 export class Gemini implements LLM {
   ai: GoogleGenerativeAI
@@ -33,21 +49,36 @@ export class Gemini implements LLM {
       model: this.getModel(options.model),
       tools: [
         {
-          functionDeclarations: await Promise.all(
-            Object.entries(options.functions).map(async ([name, fn]) => {
-              const parameters = await jsonSchemaToOpenapiSchema(
-                zodToJsonSchema(fn.returns),
-              )
+          functionDeclarations: Object.entries(options.functions).map(
+            ([name, fn]) => {
+              const parameters = zodToJsonSchema(fn.returns, {
+                target: "openApi3",
+              })
+              removeAdditionalProperties(parameters)
               return {
                 name: name,
                 description: fn.description,
-                // biome-ignore lint/suspicious/noExplicitAny: trust me
-                parameters: parameters as any,
+                // for some reason gemini don't work if the root object isn't an object
+                parameters: {
+                  type: FunctionDeclarationSchemaType.OBJECT,
+                  required: ["result"],
+                  properties: {
+                    // biome-ignore lint/suspicious/noExplicitAny: this should be okay
+                    result: parameters as any,
+                  },
+                },
               }
-            }),
+            },
           ),
         },
       ],
+      toolConfig: {
+        functionCallingConfig: {
+          mode: options.mustUseFunctions
+            ? FunctionCallingMode.ANY
+            : FunctionCallingMode.AUTO,
+        },
+      },
     })
 
     const result = await model.generateContent(
@@ -64,7 +95,8 @@ export class Gemini implements LLM {
     for (const call of calls) {
       try {
         returns[call.name] = options.functions[call.name].returns.parse(
-          call.args,
+          // biome-ignore lint/suspicious/noExplicitAny: this should be okay
+          (call.args as any).result,
         )
       } catch { }
     }

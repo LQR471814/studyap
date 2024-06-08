@@ -64,12 +64,15 @@ export const generateMcqs = memo(async (ctx: Context) => {
         return llm.generate({
           model: "big",
           messages: messages,
-          systemText: "You are a high school history teacher employed by the collegeboard to create multiple choice questions for the AP US History exam.",
+          systemText:
+            "You are a high school history teacher employed by the collegeboard to create multiple choice questions for the AP US History exam.",
+          mustUseFunctions: true,
           functions: {
             generate_mcq: {
-              description: "Create a multiple choice question for the AP US History exam.",
+              description:
+                "Create a multiple choice question for the AP US History exam.",
               returns: questionObj,
-            }
+            },
           },
         })
       })
@@ -180,4 +183,3 @@ export const generateMcqs = memo(async (ctx: Context) => {
 
   return generatedQuestions
 })
-
