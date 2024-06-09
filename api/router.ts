@@ -76,6 +76,7 @@ export const router = t.router({
     .input(
       z
         .object({
+          testAttemptId: z.number(),
           questionId: z.number(),
           contents: z.string(),
         })
@@ -88,7 +89,12 @@ export const router = t.router({
             return tx
               .update(frqAttempt)
               .set({ response: c.contents })
-              .where(eq(frqAttempt.questionId, c.questionId))
+              .where(
+                and(
+                  eq(frqAttempt.questionId, c.questionId),
+                  eq(frqAttempt.testId, c.testAttemptId),
+                ),
+              )
           }),
         )
       })

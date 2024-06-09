@@ -68,7 +68,7 @@ export const generateMcqs = memo(async (ctx: Context) => {
         },
         {
           text: "the telegraph",
-          correct: false,
+          correct: true,
           explanation:
             "The introduction of the cotton gin increased the production of tangible (cotton) goods or outputs. The telegraph, on the other hand, had to do with abstract outputs such as increased communication.",
         },
@@ -122,6 +122,7 @@ export const generateMcqs = memo(async (ctx: Context) => {
         questionId: q.id,
         choice: c.text,
         correct: c.correct,
+        explanation: c.explanation,
       })),
     ),
   )

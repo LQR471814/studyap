@@ -50,6 +50,9 @@ importers:
       superjson:
         specifier: ^2.2.1
         version: 2.2.1
+      svelte-markdown:
+        specifier: ^0.4.1
+        version: 0.4.1(svelte@4.2.12)
       svelte-multiselect:
         specifier: ^10.3.0
         version: 10.3.0
@@ -1442,6 +1445,9 @@ packages:
   '@types/json-schema@7.0.15':
     resolution: {integrity: sha512-5+fP8P8MFNC+AyZCDxrB2pkZFPGzqQWUzpSeuuVLvm8VMcorNYavBqoFcxK8bQz4Qsbn4oUEEem4wDLfcysGHA==}
 
+  '@types/marked@5.0.2':
+    resolution: {integrity: sha512-OucS4KMHhFzhz27KxmWg7J+kIYqyqoW5kdIEI319hqARQQUTqhao3M/F+uFnDXD0Rg72iDDZxZNxq5gvctmLlg==}
+
   '@types/node-fetch@2.6.11':
     resolution: {integrity: sha512-24xFj9R5+rfQJLRyM56qh+wnVSYhyXC2tkoBndtY0U+vubqNsYXGjufB2nn8Q6gt0LrARwL6UBtMCSVCwl4B1g==}
 
@@ -2682,6 +2688,11 @@ packages:
   makeerror@1.0.12:
     resolution: {integrity: sha512-JmqCvUhmt43madlpFzG4BQzG2Z3m6tvQDNKdClZnO3VbIudJYmxsT0FNJMeiB2+JTSlTQTSbU8QdesVmwJcmLg==}
 
+  marked@5.1.2:
+    resolution: {integrity: sha512-ahRPGXJpjMjwSOlBoTMZAK7ATXkli5qCPxZ21TG44rx1KEo44bii4ekgTDQPNRQ4Kh7JMb9Ub1PVk1NxRSsorg==}
+    engines: {node: '>= 16'}
+    hasBin: true
+
   mdn-data@2.0.30:
     resolution: {integrity: sha512-GaqWWShW4kv/G9IEucWScBx9G1/vsFZZJUO+tD26M8J8z3Kw5RDQjaoZe03YAClgeS/SWPOcb4nkFBTEi5DUEA==}
 
@@ -3293,6 +3304,11 @@ packages:
 
   svelte-keyed@2.0.0:
     resolution: {integrity: sha512-7TeEn+QbJC2OJrHiuM0T8vMBkms3DNpTE+Ir+NtnVBnBMA78aL4f1ft9t0Hn/pBbD/TnIXi4YfjFRAgtN+DZ5g==}
+    peerDependencies:
+      svelte: ^4.0.0
+
+  svelte-markdown@0.4.1:
+    resolution: {integrity: sha512-pOlLY6EruKJaWI9my/2bKX8PdTeP5CM0s4VMmwmC2prlOkjAf+AOmTM4wW/l19Y6WZ87YmP8+ZCJCCwBChWjYw==}
     peerDependencies:
       svelte: ^4.0.0
 
@@ -4771,6 +4787,8 @@ snapshots:
 
   '@types/json-schema@7.0.15': {}
 
+  '@types/marked@5.0.2': {}
+
   '@types/node-fetch@2.6.11':
     dependencies:
       '@types/node': 20.12.7
@@ -6178,6 +6196,8 @@ snapshots:
     dependencies:
       tmpl: 1.0.5
 
+  marked@5.1.2: {}
+
   mdn-data@2.0.30: {}
 
   merge-stream@2.0.0: {}
@@ -6791,6 +6811,12 @@ snapshots:
 
   svelte-keyed@2.0.0(svelte@4.2.12):
     dependencies:
+      svelte: 4.2.12
+
+  svelte-markdown@0.4.1(svelte@4.2.12):
+    dependencies:
+      '@types/marked': 5.0.2
+      marked: 5.1.2
       svelte: 4.2.12
 
   svelte-multiselect@10.3.0:

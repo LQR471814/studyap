@@ -9,7 +9,8 @@ export let selected = false
 
 <Button.Root
     class={twMerge(
-        "button text-md border-2 border-transparent text-left transition-all",
+        "flex gap-3 items-center px-3 py-2 rounded-lg",
+        "text-md border-2 border-transparent text-left transition-all",
         "hover:border-neutral-900 font-medium",
         selected
             ? "bg-neutral-900 text-white hover:cursor-default border-neutral-900 shadow-xl"

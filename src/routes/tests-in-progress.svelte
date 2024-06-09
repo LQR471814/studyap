@@ -5,7 +5,7 @@ import PlayIcon from "~icons/ri/play-mini-line"
 import { push } from "svelte-spa-router"
 import { fly } from "svelte/transition"
 
-const tests = api.completeTests.listIncompleteTests.query()
+const tests = api.listIncompleteTests.query()
 </script>
 
 <div class="flex h-full" in:fly={{ y: 10 }}>

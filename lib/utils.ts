@@ -105,3 +105,17 @@ export function memo<A extends unknown[], R>(
   }
 }
 
+export function formatStimulus(
+  text: string,
+  imageAltText: string | null,
+  attribution: string,
+): string {
+  if (imageAltText) {
+    return `This is an image with the following description: ${imageAltText}
+
+Attributed to: "${attribution}"`
+  }
+  return `${text}
+
+Attributed to: "${attribution}"`
+}

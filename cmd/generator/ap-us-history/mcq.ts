@@ -1,5 +1,5 @@
 import { question, questionChoice, questionUnit } from "@/lib/schema/schema"
-import { memo, retryAsyncFn } from "@/lib/utils"
+import { formatStimulus, memo, retryAsyncFn } from "@/lib/utils"
 import { z } from "zod"
 import type { Context } from "../context"
 import { generateStimuli } from "./stimuli"
@@ -119,12 +119,14 @@ export const generateMcqs = memo(async (ctx: Context) => {
   await Promise.all(
     UNITS.flatMap((unit) =>
       STIMULI.map(async (stimulus) => {
+
         const generator = questionIterable(
           unit.name,
-          `${stimulus.imageAltText
-            ? "This is an image with the following description: "
-            : ""
-          }${stimulus.imageAltText}\n- ${stimulus.attribution}`,
+          formatStimulus(
+            stimulus.content,
+            stimulus.imageAltText,
+            stimulus.attribution,
+          ),
           false,
         )
 

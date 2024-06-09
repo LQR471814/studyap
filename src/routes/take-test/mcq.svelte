@@ -1,27 +1,32 @@
 <script lang="ts">
-import * as RadioGroup from "@ui-lib/components/ui/radio-group"
-import { Label } from "@ui-lib/components/ui/label"
-import Question from "./question.svelte"
-import pdebounce from "p-debounce"
 import { api } from "@/src/api"
+import { Label } from "@ui-lib/components/ui/label"
+import * as RadioGroup from "@ui-lib/components/ui/radio-group"
+import pdebounce from "p-debounce"
+import { getContext } from "svelte"
+import { twMerge } from "tailwind-merge"
+import { type Context, contextSymbol } from "./context"
+import Question from "./question.svelte"
+
+const ctx = getContext<Context>(contextSymbol)
 
 export let question: string
 export let questionNumber: number
 export let questionChoices: {
   id: number
   choice: string
+  correct: boolean
+  explanation: string | null
 }[]
 export let selected: number | null
-
-export let testAttemptId: number
 export let questionId: number
 
 const postChoice = pdebounce(() => {
   if (!selected) {
     return
   }
-  api.tests.fillMCQs.mutate({
-    testAttemptId: testAttemptId,
+  api.fillMCQs.mutate({
+    testAttemptId: ctx.testAttemptId,
     questions: [
       {
         questionId: questionId,
@@ -34,21 +39,47 @@ const postChoice = pdebounce(() => {
 
 <Question {question} {questionNumber} />
 <RadioGroup.Root class="py-2 gap-0" value={selected?.toString()}>
-    {#each questionChoices as choice}
-        {@const uniqueId = choice.id.toString()}
-        <div class="flex items-center gap-2 group hover:cursor-pointer pl-4">
-            <RadioGroup.Item
-                class="group-hover:outline-2 group-hover:outline-gray-900 group-hover:outline-offset-2 group-hover:outline"
-                value={choice.id.toString()}
-                id={uniqueId}
-                on:click={() => {
-                    selected = choice.id;
-                    postChoice();
-                }}
-            />
-            <Label class="w-full hover:cursor-pointer py-1" for={uniqueId}>
-                {choice.choice}
-            </Label>
-        </div>
-    {/each}
+  {#each questionChoices as choice}
+    {@const uniqueId = choice.id.toString()}
+    <div
+      class={twMerge(
+        "flex items-center gap-2 group hover:cursor-pointer pl-4",
+        ctx.withCorrections
+          ? choice.id === selected
+            ? choice.correct
+              ? "text-green-700"
+              : "text-red-700"
+            : ""
+          : "",
+      )}
+    >
+      <RadioGroup.Item
+        class="group-hover:outline-1 group-hover:outline-gray-900 group-hover:outline-offset-2 group-hover:outline text-current"
+        value={choice.id.toString()}
+        id={uniqueId}
+        on:click={() => {
+          selected = choice.id;
+          postChoice();
+        }}
+      />
+
+      <Label class="w-full hover:cursor-pointer py-1" for={uniqueId}>
+        {choice.choice}
+      </Label>
+
+      {#if ctx.withCorrections && choice.id === selected}
+        {#if choice.correct}
+          <p class="text-green-700">✓</p>
+        {:else}
+          <p class="text-red-700">✗</p>
+        {/if}
+      {/if}
+    </div>
+
+    {#if ctx.withCorrections && choice.explanation}
+      <p class={choice.correct ? "text-green-700" : "text-red-700"}>
+        {choice.explanation}
+      </p>
+    {/if}
+  {/each}
 </RadioGroup.Root>

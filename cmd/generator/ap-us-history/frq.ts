@@ -3,7 +3,7 @@ import {
   questionGradingGuidelines,
   questionUnit,
 } from "@/lib/schema/schema"
-import { memo, retryAsyncFn } from "@/lib/utils"
+import { formatStimulus, memo, retryAsyncFn } from "@/lib/utils"
 import { z } from "zod"
 import { generateStimuli } from "./stimuli"
 import { generateSubject } from "./subject"
@@ -111,10 +111,11 @@ etc...`,
       STIMULI.map(async (stimulus) => {
         const generator = generateQuestion(
           unit.name,
-          `${stimulus.imageAltText
-            ? "This is an image with the following description: "
-            : ""
-          }${stimulus.imageAltText}\n- ${stimulus.attribution}`,
+          formatStimulus(
+            stimulus.content,
+            stimulus.imageAltText,
+            stimulus.attribution,
+          ),
         )
 
         let len = 0

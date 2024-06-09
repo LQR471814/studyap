@@ -87,24 +87,29 @@
     @apply text-left;
   }
 
-  .button {
-    @apply flex gap-2 items-center px-3 py-2 rounded-lg;
-  }
-
-  .panel {
-    @apply shadow-xl p-4 rounded-xl;
+  .glass-panel {
+    @apply border border-gray-300 bg-gray-200 rounded-lg p-3;
   }
 }
 
 @font-face {
   font-family: "Satoshi";
-  src: url("http://localhost:5173/fonts/Satoshi-Variable.ttf");
+  src: url("/fonts/Satoshi-Variable.ttf");
+  font-weight: 100 900;
+}
+
+@font-face {
+  font-family: "JetBrains Mono";
+  src: url("/fonts/JetBrainsMono-Variable.ttf");
   font-weight: 100 900;
 }
 
 html {
   font-family: "Satoshi", "Trebuchet MS", Helvetica, sans-serif;
-  font-weight: normal;
+}
+
+code {
+  font-family: "JetBrains Mono";
 }
 
 html,
@@ -120,7 +125,7 @@ html {
 
   --sms-padding: theme("padding.1");
   --sms-font-size: theme("fontSize.sm");
-  
+
   --sms-options-border: theme("colors.neutral.900") solid;
   --sms-options-border-width: 2px;
 }
@@ -130,11 +135,12 @@ html {
   outline-offset: 2px;
 }
 
-.multiselect button, .multiselect button svg {
+.multiselect button,
+.multiselect button svg {
   @apply size-3;
 }
 
-.multiselect button.remove-all, .multiselect button.remove-all svg {
+.multiselect button.remove-all,
+.multiselect button.remove-all svg {
   @apply size-4;
 }
-
