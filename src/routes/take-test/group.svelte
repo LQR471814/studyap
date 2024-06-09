@@ -54,7 +54,7 @@ $: {
         <code
             class={twMerge(
                 "font-normal",
-                groupScored !== null
+                groupScored !== undefined
                     ? groupScored >= groupTotal
                         ? "text-green-700"
                         : "text-red-700"

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Toggle as TogglePrimitive } from "bits-ui";
+	import type { Toggle as TogglePrimitive } from "bits-ui";
 	import { type Size, type Variant, toggleVariants } from "./index.js";
 	import { cn } from "@ui-lib/components/utils.js";
 
