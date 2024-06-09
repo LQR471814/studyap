@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { Select as SelectPrimitive } from "bits-ui";
+	import { Select as SelectPrimitive } from "bits-ui";
 	import { cn } from "@ui-lib/components/utils.js";
 
 	type $$Props = SelectPrimitive.SeparatorProps;
