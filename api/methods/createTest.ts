@@ -9,6 +9,8 @@ import {
 } from "@/lib/schema/schema"
 import { and, eq, inArray, isNull } from "drizzle-orm"
 import { z } from "zod"
+import { fnSpan } from "@/api/tracer"
+import type { Span } from "@opentelemetry/api"
 
 export const createTestOptions = z.object({
   subject: z.number(),
@@ -19,6 +21,26 @@ export const createTestOptions = z.object({
 export type CreateTestOptions = z.TypeOf<typeof createTestOptions>
 
 export async function createTest(
+  span: Span | undefined,
+  userEmail: string,
+  db: DB,
+  options: CreateTestOptions,
+) {
+  return fnSpan(span, "createTest", async (span) => {
+    if (span.isRecording()) {
+      span.setAttribute("subject", options.subject)
+      span.setAttribute("mcqCount", options.mcqCount)
+      span.setAttribute("frqCount", options.frqCount)
+      if (options.units) {
+        span.setAttribute("units", options.units)
+      }
+    }
+    return createTestInner(span, userEmail, db, options)
+  })
+}
+
+async function createTestInner(
+  span: Span | undefined,
   userEmail: string,
   db: DB,
   options: CreateTestOptions,
@@ -62,6 +84,12 @@ export async function createTest(
     .groupBy(question.id)
     // for some reason .limit() will ignore mcqCount if it is 0
     .limit(options.mcqCount === 0 ? 1 : options.mcqCount)
+
+  if (span?.isRecording()) {
+    span.addEvent("returned mcqs", {
+      result: JSON.stringify(mcqs),
+    })
+  }
 
   if (mcqs.length < options.mcqCount) {
     return new Error(
@@ -108,6 +136,12 @@ export async function createTest(
     )
   }
 
+  if (span?.isRecording()) {
+    span.addEvent("returned frqs", {
+      result: JSON.stringify(frqs),
+    })
+  }
+
   return await db.transaction(async (tx) => {
     const [attempt] = await tx
       .insert(testAttempt)
@@ -124,7 +158,7 @@ export async function createTest(
     // undefined is the initial value, because the first question's stimulus must
     // always be added
     // null represents no stimulus, but should still be added to preserve the correct order
-    let lastStimulusId: number | null | undefined
+    let lastStimulusId: number | undefined
     for (const question of mcqs) {
       if (question.stimulusId === lastStimulusId) {
         continue
@@ -138,6 +172,13 @@ export async function createTest(
       groupNumber++
     }
     lastStimulusId = undefined
+
+    if (span?.isRecording()) {
+      span.addEvent("returned stimuli 1", {
+        result: JSON.stringify(testStimuli),
+      })
+    }
+
     for (const question of frqs) {
       if (question.stimulusId === lastStimulusId) {
         continue
@@ -150,6 +191,13 @@ export async function createTest(
       lastStimulusId = question.stimulusId
       groupNumber++
     }
+
+    if (span?.isRecording()) {
+      span.addEvent("returned stimuli 2", {
+        result: JSON.stringify(testStimuli),
+      })
+    }
+
     await tx.insert(testStimulus).values(testStimuli)
 
     let questionNo = 0
@@ -177,4 +225,3 @@ export async function createTest(
     return attempt.id
   })
 }
-

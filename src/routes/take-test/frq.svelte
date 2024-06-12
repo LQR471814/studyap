@@ -6,7 +6,6 @@
   import { getContext } from "svelte";
   import { type Context, contextSymbol } from "./context";
   import SvelteMarkdown from "svelte-markdown";
-  import { twMerge } from "tailwind-merge";
 
   const ctx = getContext<Context>(contextSymbol);
 

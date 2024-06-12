@@ -1,57 +1,27 @@
-import { createDB } from "@/lib/db"
-import { router } from "./router"
-import { fetchRequestHandler } from "@trpc/server/adapters/fetch"
-import { createClient } from "@libsql/client"
-import { isomorphicLLM } from "@/lib/llm/isomorphic"
+import { instrument, type ResolveConfigFn } from "@microlabs/otel-cf-workers"
+import handler from "./main"
 
-const CORS_HEADERS: Record<string, string> = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-  "Access-Control-Allow-Headers": "*",
-}
+import type { Env } from "./main"
 
-export type Env = {
-  OPENAI_API_KEY?: string
-  GOOGLE_API_KEY?: string
-  DATABASE_URL?: string
-  DATABASE_AUTH_TOKEN?: string
-}
-
-function database(env: Env) {
-  return createDB(
-    createClient({
-      url: env.DATABASE_URL ?? "http://127.0.0.1:8080",
-      authToken: env.DATABASE_AUTH_TOKEN,
-    }),
-  )
-}
-
-export default {
-  async fetch(request: Request, env: Env): Promise<Response> {
-    if (request.method === "OPTIONS") {
-      const res = new Response(undefined, {
-        headers: CORS_HEADERS,
-      })
-      return res
-    }
-    const res = await fetchRequestHandler({
-      endpoint: "/",
-      req: request,
-      router: router,
-      createContext() {
-        return {
-          db: database(env),
-          userEmail: "testuser@gmail.com",
-          llm: isomorphicLLM({
-            openai: env.OPENAI_API_KEY,
-            google: env.GOOGLE_API_KEY,
-          }),
-        }
+const config: ResolveConfigFn = (env: Env) => {
+  if (!env.HONEYCOMB_API_KEY) {
+    return {
+      exporter: {
+        // this is a black-hole address
+        url: "http://198.51.100.0",
       },
-    })
-    for (const key in CORS_HEADERS) {
-      res.headers.set(key, CORS_HEADERS[key])
+      service: { name: "cloudflare_workers" },
     }
-    return res
-  },
+  }
+  return {
+    exporter: {
+      url: "https://api.honeycomb.io/v1/traces",
+      headers: { "x-honeycomb-team": env.HONEYCOMB_API_KEY },
+    },
+    service: { name: "cloudflare_workers" },
+  }
 }
+
+export type { Env }
+
+export default instrument(handler, config)

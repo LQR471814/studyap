@@ -8,8 +8,9 @@ import { eq } from "drizzle-orm"
 import type { LLM } from "@/lib/llm/core"
 import { evalMCQs } from "./evalMcqs"
 import { evalFRQs } from "./evalFrqs"
+import type { Span } from "@opentelemetry/api"
 
-export async function evalTest(db: DB, llm: LLM, testId: number) {
+export async function evalTest(span: Span | undefined, db: DB, llm: LLM, testId: number) {
   const mcqQuestionIds = await db
     .select({ questionId: mcqAttempt.questionId })
     .from(mcqAttempt)
@@ -24,6 +25,7 @@ export async function evalTest(db: DB, llm: LLM, testId: number) {
     mcqQuestionIds.map((r) => r.questionId),
   )
   await evalFRQs(
+    span,
     db,
     llm,
     frqQuestionIds.map((r) => r.questionId),

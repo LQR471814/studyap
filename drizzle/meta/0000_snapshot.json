@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "f00a95aa-c1b3-4059-bab4-40151710fd3f",
+  "id": "f7c8ded9-e5eb-425d-81f7-e1932a78524a",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "frqAttempt": {
@@ -18,7 +18,7 @@
           "name": "stimulusId",
           "type": "integer",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         },
         "questionId": {
@@ -131,7 +131,7 @@
           "name": "stimulusId",
           "type": "integer",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         },
         "questionId": {
@@ -239,6 +239,13 @@
     "question": {
       "name": "question",
       "columns": {
+        "version": {
+          "name": "version",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
         "id": {
           "name": "id",
           "type": "integer",
@@ -257,7 +264,7 @@
           "name": "stimulusId",
           "type": "integer",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         },
         "format": {
@@ -279,6 +286,13 @@
           "type": "integer",
           "primaryKey": false,
           "notNull": true,
+          "autoincrement": false
+        },
+        "gradingGuidelines": {
+          "name": "gradingGuidelines",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
           "autoincrement": false
         }
       },
@@ -372,43 +386,6 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
-    "questionGradingGuidelines": {
-      "name": "questionGradingGuidelines",
-      "columns": {
-        "questionId": {
-          "name": "questionId",
-          "type": "integer",
-          "primaryKey": true,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "content": {
-          "name": "content",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "questionGradingGuidelines_questionId_question_id_fk": {
-          "name": "questionGradingGuidelines_questionId_question_id_fk",
-          "tableFrom": "questionGradingGuidelines",
-          "tableTo": "question",
-          "columnsFrom": [
-            "questionId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "cascade"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
-    },
     "questionUnit": {
       "name": "questionUnit",
       "columns": {
@@ -470,6 +447,13 @@
     "stimulus": {
       "name": "stimulus",
       "columns": {
+        "version": {
+          "name": "version",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
         "id": {
           "name": "id",
           "type": "integer",
@@ -488,7 +472,7 @@
           "name": "content",
           "type": "text",
           "primaryKey": false,
-          "notNull": true,
+          "notNull": false,
           "autoincrement": false
         },
         "imageUrl": {
@@ -509,14 +493,7 @@
           "name": "attribution",
           "type": "text",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "forFormat": {
-          "name": "forFormat",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
+          "notNull": false,
           "autoincrement": false
         }
       },
@@ -539,9 +516,74 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
+    "stimulusUnit": {
+      "name": "stimulusUnit",
+      "columns": {
+        "stimulusId": {
+          "name": "stimulusId",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "unitId": {
+          "name": "unitId",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "stimulusUnit_stimulusId_stimulus_id_fk": {
+          "name": "stimulusUnit_stimulusId_stimulus_id_fk",
+          "tableFrom": "stimulusUnit",
+          "tableTo": "stimulus",
+          "columnsFrom": [
+            "stimulusId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
+        },
+        "stimulusUnit_unitId_unit_id_fk": {
+          "name": "stimulusUnit_unitId_unit_id_fk",
+          "tableFrom": "stimulusUnit",
+          "tableTo": "unit",
+          "columnsFrom": [
+            "unitId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
+        }
+      },
+      "compositePrimaryKeys": {
+        "stimulusUnit_stimulusId_unitId_pk": {
+          "columns": [
+            "stimulusId",
+            "unitId"
+          ],
+          "name": "stimulusUnit_stimulusId_unitId_pk"
+        }
+      },
+      "uniqueConstraints": {}
+    },
     "subject": {
       "name": "subject",
       "columns": {
+        "version": {
+          "name": "version",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
         "id": {
           "name": "id",
           "type": "integer",
@@ -647,7 +689,7 @@
           "name": "stimulusId",
           "type": "integer",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         },
         "groupNumber": {
@@ -701,6 +743,13 @@
     "unit": {
       "name": "unit",
       "columns": {
+        "version": {
+          "name": "version",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
         "id": {
           "name": "id",
           "type": "integer",

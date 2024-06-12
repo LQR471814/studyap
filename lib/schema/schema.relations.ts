@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm";
-import { frqAttempt, mcqAttempt, question, questionChoice, questionFormat, questionGradingGuidelines, questionUnit, stimulus, subject, testAttempt, testStimulus, unit, user } from "./schema";
+import { frqAttempt, mcqAttempt, question, questionChoice, questionFormat, questionUnit, stimulus, stimulusUnit, subject, testAttempt, testStimulus, unit, user } from "./schema";
 export const frqAttemptRelations = relations(frqAttempt, ({ one, many }) => ({
     testAttempt: one(testAttempt, {
         fields: [frqAttempt.testId],
@@ -52,19 +52,12 @@ export const questionRelations = relations(question, ({ one, many }) => ({
         references: [stimulus.id]
     }),
     questionChoice: many(questionChoice),
-    questionGradingGuidelines: many(questionGradingGuidelines),
     questionUnit: many(questionUnit)
 }));
 export const questionChoiceRelations = relations(questionChoice, ({ one, many }) => ({
     mcqAttempt: many(mcqAttempt),
     question: one(question, {
         fields: [questionChoice.questionId],
-        references: [question.id]
-    })
-}));
-export const questionGradingGuidelinesRelations = relations(questionGradingGuidelines, ({ one, many }) => ({
-    question: one(question, {
-        fields: [questionGradingGuidelines.questionId],
         references: [question.id]
     })
 }));
@@ -86,7 +79,18 @@ export const stimulusRelations = relations(stimulus, ({ one, many }) => ({
         fields: [stimulus.subjectId],
         references: [subject.id]
     }),
+    stimulusUnit: many(stimulusUnit),
     testStimulus: many(testStimulus)
+}));
+export const stimulusUnitRelations = relations(stimulusUnit, ({ one, many }) => ({
+    stimulus: one(stimulus, {
+        fields: [stimulusUnit.stimulusId],
+        references: [stimulus.id]
+    }),
+    unit: one(unit, {
+        fields: [stimulusUnit.unitId],
+        references: [unit.id]
+    })
 }));
 export const subjectRelations = relations(subject, ({ one, many }) => ({
     question: many(question),
@@ -121,6 +125,7 @@ export const testStimulusRelations = relations(testStimulus, ({ one, many }) => 
 }));
 export const unitRelations = relations(unit, ({ one, many }) => ({
     questionUnit: many(questionUnit),
+    stimulusUnit: many(stimulusUnit),
     subject: one(subject, {
         fields: [unit.subjectId],
         references: [subject.id]

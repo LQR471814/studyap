@@ -1,7 +1,26 @@
-import { unit } from "@/lib/schema/schema"
-import { generateSubject } from "./subject"
-import type { Context } from "../context"
+import { subject, unit } from "@/lib/schema/schema"
 import { memo } from "@/lib/utils"
+import type { DB } from "@/lib/db"
+import type { LLMCache } from "@/lib/llm-cache/cache"
+
+export type Context = {
+  llm: LLMCache
+  db: DB
+}
+
+export const VERSION = 1
+
+export const generateSubject = memo(async (ctx: Context) => {
+  const [SUBJECT] = await ctx.db
+    .insert(subject)
+    .values({
+      name: "AP US History",
+      version: VERSION,
+    })
+    .returning()
+
+  return SUBJECT
+})
 
 export const generateUnits = memo(async (ctx: Context) => {
   const SUBJECT = await generateSubject(ctx)
@@ -22,6 +41,7 @@ export const generateUnits = memo(async (ctx: Context) => {
       ].map((u) => ({
         name: u,
         subjectId: SUBJECT.id,
+        version: VERSION,
       })),
     )
     .returning()

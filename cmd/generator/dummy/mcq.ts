@@ -1,7 +1,5 @@
 import { question, questionChoice, questionUnit } from "@/lib/schema/schema"
-import { generateSubject } from "./subject"
-import type { Context } from "../context"
-import { generateUnits } from "./units"
+import { type Context, generateSubject, generateUnits, VERSION } from "./constants"
 import { generateStimuli } from "./stimuli"
 import { memo } from "@/lib/utils"
 
@@ -88,6 +86,33 @@ export const generateMcqs = memo(async (ctx: Context) => {
       unitId: UNITS[4].id,
       stimulusId: STIMULI[0].id,
     },
+    {
+      question: "This is a question without a stimulus.",
+      choices: [
+        {
+          text: "The correct answer",
+          correct: true,
+          explanation: "By definition."
+        },
+        {
+          text: "Incorrect answer A.",
+          correct: false,
+          explanation: "By definition."
+        },
+        {
+          text: "Incorrect answer B.",
+          correct: false,
+          explanation: "By definition."
+        },
+        {
+          text: "Incorrect answer C.",
+          correct: false,
+          explanation: "By definition."
+        },
+      ],
+      unitId: UNITS[4].id,
+      stimulusId: STIMULI[5].id,
+    },
   ]
 
   const questionIds = (
@@ -100,6 +125,7 @@ export const generateMcqs = memo(async (ctx: Context) => {
           content: q.question,
           totalPoints: 1,
           subjectId: SUBJECT.id,
+          version: VERSION,
         })),
       )
       .returning({ id: question.id })

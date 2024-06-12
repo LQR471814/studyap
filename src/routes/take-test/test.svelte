@@ -12,6 +12,8 @@ const ctx = getContext<Context>(contextSymbol)
 
 export let test: Test
 
+console.log(test)
+
 let submitting = false
 const submit = async () => {
   submitting = true

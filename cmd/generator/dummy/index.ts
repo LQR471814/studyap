@@ -2,15 +2,12 @@ import { createDB } from "@/lib/db"
 import { isomorphicLLMFromEnv } from "@/lib/llm/isomorphic"
 import { createClient } from "@libsql/client"
 import esMain from "es-main"
-import { type Context, context } from "../context"
+import { generateSubject, generateUnits, type Context } from "./constants"
 import { generateFrqs } from "./frq"
 import { generateMcqs } from "./mcq"
 import { generateStimuli } from "./stimuli"
-import { generateSubject } from "./subject"
-import { generateUnits } from "./units"
+import { LLMCache } from "@/lib/llm-cache/cache"
 
-export * from "./subject"
-export * from "./units"
 export * from "./stimuli"
 export * from "./frq"
 export * from "./mcq"
@@ -31,7 +28,7 @@ if (esMain(import.meta)) {
     }),
   )
   const llm = isomorphicLLMFromEnv()
-  await generateAll(context(db, llm))
+  await generateAll({ db, llm: new LLMCache({ llm }) })
   console.log("added dummy data successfully")
   process.exit(0)
 }

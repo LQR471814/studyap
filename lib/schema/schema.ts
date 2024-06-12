@@ -33,7 +33,9 @@ export const testStimulus = sqliteTable(
     testId: int("testId")
       .notNull()
       .references(() => testAttempt.id, CASCADE),
-    stimulusId: int("stimulusId").references(() => stimulus.id, CASCADE),
+    stimulusId: int("stimulusId")
+      .notNull()
+      .references(() => stimulus.id, CASCADE),
     groupNumber: int("groupNumber").notNull(),
   },
   (table) => ({
@@ -47,7 +49,9 @@ export const mcqAttempt = sqliteTable(
     testId: int("testId")
       .notNull()
       .references(() => testAttempt.id, CASCADE),
-    stimulusId: int("stimulusId").references(() => stimulus.id, CASCADE),
+    stimulusId: int("stimulusId")
+      .notNull()
+      .references(() => stimulus.id, CASCADE),
     questionId: int("questionId")
       .notNull()
       .references(() => question.id, CASCADE),
@@ -69,7 +73,9 @@ export const frqAttempt = sqliteTable(
     testId: int("testId")
       .notNull()
       .references(() => testAttempt.id, CASCADE),
-    stimulusId: int("stimulusId").references(() => stimulus.id, CASCADE),
+    stimulusId: int("stimulusId")
+      .notNull()
+      .references(() => stimulus.id, CASCADE),
     questionId: int("questionId")
       .notNull()
       .references(() => question.id, CASCADE),
@@ -87,11 +93,13 @@ export const frqAttempt = sqliteTable(
 )
 
 export const subject = sqliteTable("subject", {
+  version: int("version").notNull(),
   id: int("id").notNull().primaryKey({ autoIncrement: true }),
   name: text("name").notNull(),
 })
 
 export const unit = sqliteTable("unit", {
+  version: int("version").notNull(),
   id: int("id").notNull().primaryKey({ autoIncrement: true }),
   subjectId: int("subjectId")
     .notNull()
@@ -100,31 +108,48 @@ export const unit = sqliteTable("unit", {
 })
 
 export const stimulus = sqliteTable("stimulus", {
+  version: int("version").notNull(),
   id: int("id").notNull().primaryKey({ autoIncrement: true }),
   subjectId: int("subjectId")
     .notNull()
     .references(() => subject.id, CASCADE),
   // markdown which can contain latex/html
-  content: text("content").notNull(),
+  content: text("content"),
   imageUrl: text("imageUrl"),
   imageAltText: text("imageAltText"),
-  attribution: text("attribution").notNull(),
-  forFormat: text("forFormat")
-    .notNull()
-    .$type<(typeof questionFormat)[number]>(),
+  attribution: text("attribution"),
 })
+
+export const stimulusUnit = sqliteTable(
+  "stimulusUnit",
+  {
+    stimulusId: int("stimulusId")
+      .notNull()
+      .references(() => stimulus.id, CASCADE),
+    unitId: int("unitId")
+      .notNull()
+      .references(() => unit.id, CASCADE),
+  },
+  (table) => ({
+    pkey: primaryKey({ columns: [table.stimulusId, table.unitId] }),
+  }),
+)
 
 export const questionFormat = ["mcq", "frq"] as const
 
 export const question = sqliteTable("question", {
+  version: int("version").notNull(),
   id: int("id").notNull().primaryKey({ autoIncrement: true }),
   subjectId: int("subjectId")
     .notNull()
     .references(() => subject.id, CASCADE),
-  stimulusId: int("stimulusId").references(() => stimulus.id, CASCADE),
+  stimulusId: int("stimulusId")
+    .notNull()
+    .references(() => stimulus.id, CASCADE),
   format: text("format").notNull().$type<(typeof questionFormat)[number]>(),
   content: text("content").notNull(),
   totalPoints: int("totalPoints").notNull(),
+  gradingGuidelines: text("gradingGuidelines"),
 })
 
 export const questionUnit = sqliteTable(
@@ -140,17 +165,6 @@ export const questionUnit = sqliteTable(
   (table) => ({
     pkey: primaryKey({ columns: [table.questionId, table.unitId] }),
   }),
-)
-
-export const questionGradingGuidelines = sqliteTable(
-  "questionGradingGuidelines",
-  {
-    questionId: int("questionId")
-      .notNull()
-      .primaryKey()
-      .references(() => question.id, CASCADE),
-    content: text("content").notNull(),
-  },
 )
 
 export const questionChoice = sqliteTable("questionChoice", {

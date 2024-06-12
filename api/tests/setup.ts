@@ -6,11 +6,15 @@ import { join, dirname } from "node:path"
 import { t } from "../trpc"
 import { generateAll } from "@/cmd/generator/dummy"
 import { user } from "@/lib/schema/schema"
-import { context } from "@/cmd/generator/context"
 import { isomorphicLLMFromEnv } from "@/lib/llm/isomorphic"
 import { router } from "../router"
+import { LLMCache } from "@/lib/llm-cache/cache"
+import { initializeOtel } from "@/lib/telemetry/nodejs"
+import type { Span } from "@opentelemetry/api"
 
-export async function setupDummyDB() {
+initializeOtel("test:api")
+
+export async function setupDummyDB(span: Span) {
   // setup sqld instance and client
   const sqld = await new GenericContainer("ghcr.io/libsql/sqld:latest")
     .withExposedPorts(8080)
@@ -46,11 +50,16 @@ export async function setupDummyDB() {
   const llm = isomorphicLLMFromEnv()
 
   // setup generation context
-  const dummyData = await generateAll(context(db, llm))
+  const dummyData = await generateAll({ db, llm: new LLMCache({ llm }) })
 
   // setup local trpc API
   const createApi = t.createCallerFactory(router)
-  const api = createApi({ userEmail: testEmail, db, llm })
+  const api = createApi({
+    userEmail: testEmail,
+    db,
+    llm,
+    span,
+  })
 
   return { db, api, testEmail, ...dummyData }
 }

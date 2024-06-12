@@ -1,6 +1,6 @@
 CREATE TABLE `frqAttempt` (
 	`testId` integer NOT NULL,
-	`stimulusId` integer,
+	`stimulusId` integer NOT NULL,
 	`questionId` integer NOT NULL,
 	`questionNumber` integer NOT NULL,
 	`scoredPoints` integer,
@@ -14,7 +14,7 @@ CREATE TABLE `frqAttempt` (
 --> statement-breakpoint
 CREATE TABLE `mcqAttempt` (
 	`testId` integer NOT NULL,
-	`stimulusId` integer,
+	`stimulusId` integer NOT NULL,
 	`questionId` integer NOT NULL,
 	`questionNumber` integer NOT NULL,
 	`scoredPoints` integer,
@@ -27,12 +27,14 @@ CREATE TABLE `mcqAttempt` (
 );
 --> statement-breakpoint
 CREATE TABLE `question` (
+	`version` integer NOT NULL,
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`subjectId` integer NOT NULL,
-	`stimulusId` integer,
+	`stimulusId` integer NOT NULL,
 	`format` text NOT NULL,
 	`content` text NOT NULL,
 	`totalPoints` integer NOT NULL,
+	`gradingGuidelines` text,
 	FOREIGN KEY (`subjectId`) REFERENCES `subject`(`id`) ON UPDATE cascade ON DELETE cascade,
 	FOREIGN KEY (`stimulusId`) REFERENCES `stimulus`(`id`) ON UPDATE cascade ON DELETE cascade
 );
@@ -46,12 +48,6 @@ CREATE TABLE `questionChoice` (
 	FOREIGN KEY (`questionId`) REFERENCES `question`(`id`) ON UPDATE cascade ON DELETE cascade
 );
 --> statement-breakpoint
-CREATE TABLE `questionGradingGuidelines` (
-	`questionId` integer PRIMARY KEY NOT NULL,
-	`content` text NOT NULL,
-	FOREIGN KEY (`questionId`) REFERENCES `question`(`id`) ON UPDATE cascade ON DELETE cascade
-);
---> statement-breakpoint
 CREATE TABLE `questionUnit` (
 	`unitId` integer NOT NULL,
 	`questionId` integer NOT NULL,
@@ -61,17 +57,26 @@ CREATE TABLE `questionUnit` (
 );
 --> statement-breakpoint
 CREATE TABLE `stimulus` (
+	`version` integer NOT NULL,
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`subjectId` integer NOT NULL,
-	`content` text NOT NULL,
+	`content` text,
 	`imageUrl` text,
 	`imageAltText` text,
-	`attribution` text NOT NULL,
-	`forFormat` text NOT NULL,
+	`attribution` text,
 	FOREIGN KEY (`subjectId`) REFERENCES `subject`(`id`) ON UPDATE cascade ON DELETE cascade
 );
 --> statement-breakpoint
+CREATE TABLE `stimulusUnit` (
+	`stimulusId` integer NOT NULL,
+	`unitId` integer NOT NULL,
+	PRIMARY KEY(`stimulusId`, `unitId`),
+	FOREIGN KEY (`stimulusId`) REFERENCES `stimulus`(`id`) ON UPDATE cascade ON DELETE cascade,
+	FOREIGN KEY (`unitId`) REFERENCES `unit`(`id`) ON UPDATE cascade ON DELETE cascade
+);
+--> statement-breakpoint
 CREATE TABLE `subject` (
+	`version` integer NOT NULL,
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`name` text NOT NULL
 );
@@ -88,7 +93,7 @@ CREATE TABLE `testAttempt` (
 --> statement-breakpoint
 CREATE TABLE `testStimulus` (
 	`testId` integer NOT NULL,
-	`stimulusId` integer,
+	`stimulusId` integer NOT NULL,
 	`groupNumber` integer NOT NULL,
 	PRIMARY KEY(`stimulusId`, `testId`),
 	FOREIGN KEY (`testId`) REFERENCES `testAttempt`(`id`) ON UPDATE cascade ON DELETE cascade,
@@ -96,6 +101,7 @@ CREATE TABLE `testStimulus` (
 );
 --> statement-breakpoint
 CREATE TABLE `unit` (
+	`version` integer NOT NULL,
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`subjectId` integer NOT NULL,
 	`name` text NOT NULL,

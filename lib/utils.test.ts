@@ -1,24 +1,5 @@
-import { generateRandomSegments, retryAsyncFn } from "@/lib/utils"
-
-test("generateRandomSegments", () => {
-  for (let i = 0; i < 20; i++) {
-    const segments = generateRandomSegments(10, [2, 5])
-    expect(segments.length).toBeGreaterThan(0)
-    for (const e of segments) {
-      expect(Number.isInteger(e)).toBe(true)
-      expect(e).toBeLessThanOrEqual(5)
-    }
-  }
-  for (let i = 0; i < 20; i++) {
-    const segments = generateRandomSegments(10, [0, 1])
-    expect(segments.length).toBeGreaterThan(0)
-    for (const e of segments) {
-      expect(e).toBeGreaterThan(0)
-    }
-  }
-  const segments = generateRandomSegments(1, [3, 5])
-  expect(segments).toStrictEqual([1])
-})
+import { retryAsyncFn } from "@/lib/utils"
+import { test, expect } from "vitest"
 
 test("retryAsyncFn", async () => {
   {

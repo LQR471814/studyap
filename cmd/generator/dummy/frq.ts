@@ -1,13 +1,10 @@
 import {
   question,
-  questionGradingGuidelines,
   questionUnit,
 } from "@/lib/schema/schema"
 import { memo } from "@/lib/utils"
-import type { Context } from "../context"
+import { type Context, generateSubject, generateUnits, VERSION } from "./constants"
 import { generateStimuli } from "./stimuli"
-import { generateSubject } from "./subject"
-import { generateUnits } from "./units"
 
 type Question = {
   question: string
@@ -46,6 +43,8 @@ export const generateFrqs = memo(async (ctx: Context) => {
           content: q.question,
           totalPoints: 1,
           subjectId: SUBJECT.id,
+          version: VERSION,
+          guidelines: q.guidelines,
         })),
       )
       .returning({ id: question.id })
@@ -59,13 +58,6 @@ export const generateFrqs = memo(async (ctx: Context) => {
     questionIds.map((q) => ({
       unitId: q.unitId,
       questionId: q.id,
-    })),
-  )
-
-  await db.insert(questionGradingGuidelines).values(
-    questionIds.map((q) => ({
-      questionId: q.id,
-      content: q.guidelines,
     })),
   )
 

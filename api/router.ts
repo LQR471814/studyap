@@ -28,8 +28,8 @@ export const router = t.router({
   }),
   createTest: t.procedure
     .input(createTestOptions)
-    .mutation(async ({ ctx: { db, userEmail }, input }) => {
-      const res = await createTest(userEmail, db, input)
+    .mutation(async ({ ctx: { span, db, userEmail }, input }) => {
+      const res = await createTest(span, userEmail, db, input)
       if (res instanceof Error) {
         throw res
       }
@@ -137,13 +137,13 @@ export const router = t.router({
     }),
   evalFRQs: t.procedure
     .input(z.number().array().describe("list of frqAttempt.ids"))
-    .mutation(({ ctx: { db, llm }, input }) => {
-      return evalFRQs(db, llm, input)
+    .mutation(({ ctx: { span, db, llm }, input }) => {
+      return evalFRQs(span, db, llm, input)
     }),
   evalTest: t.procedure
     .input(z.number().describe("testAttempt.id"))
-    .mutation(({ ctx: { db, llm }, input }) => {
-      return evalTest(db, llm, input)
+    .mutation(({ ctx: { span, db, llm }, input }) => {
+      return evalTest(span, db, llm, input)
     }),
   listIncompleteTests: t.procedure.query(({ ctx: { db, userEmail } }) => {
     return db

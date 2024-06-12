@@ -1,40 +1,40 @@
 <script lang="ts">
-import { api } from "@/src/api"
-import { Label } from "@ui-lib/components/ui/label"
-import * as RadioGroup from "@ui-lib/components/ui/radio-group"
-import pdebounce from "p-debounce"
-import { getContext } from "svelte"
-import { twMerge } from "tailwind-merge"
-import { type Context, contextSymbol } from "./context"
-import Question from "./question.svelte"
+  import { api } from "@/src/api";
+  import { Label } from "@ui-lib/components/ui/label";
+  import * as RadioGroup from "@ui-lib/components/ui/radio-group";
+  import pdebounce from "p-debounce";
+  import { getContext } from "svelte";
+  import { twMerge } from "tailwind-merge";
+  import { type Context, contextSymbol } from "./context";
+  import Question from "./question.svelte";
 
-const ctx = getContext<Context>(contextSymbol)
+  const ctx = getContext<Context>(contextSymbol);
 
-export let question: string
-export let questionNumber: number
-export let questionChoices: {
-  id: number
-  choice: string
-  correct: boolean
-  explanation: string | null
-}[]
-export let selected: number | null
-export let questionId: number
+  export let question: string;
+  export let questionNumber: number;
+  export let questionChoices: {
+    id: number;
+    choice: string;
+    correct: boolean;
+    explanation: string | null;
+  }[];
+  export let selected: number | null;
+  export let questionId: number;
 
-const postChoice = pdebounce(() => {
-  if (!selected) {
-    return
-  }
-  api.fillMCQs.mutate({
-    testAttemptId: ctx.testAttemptId,
-    questions: [
-      {
-        questionId: questionId,
-        questionChoiceId: selected,
-      },
-    ],
-  })
-}, 1000)
+  const postChoice = pdebounce(() => {
+    if (!selected) {
+      return;
+    }
+    api.fillMCQs.mutate({
+      testAttemptId: ctx.testAttemptId,
+      questions: [
+        {
+          questionId: questionId,
+          questionChoiceId: selected,
+        },
+      ],
+    });
+  }, 1000);
 </script>
 
 <Question {question} {questionNumber} />
@@ -43,7 +43,7 @@ const postChoice = pdebounce(() => {
     {@const uniqueId = choice.id.toString()}
     <div
       class={twMerge(
-        "flex items-center gap-2 group hover:cursor-pointer pl-4",
+        "flex items-center gap-2 pl-4",
         ctx.withCorrections
           ? choice.id === selected
             ? choice.correct
@@ -54,7 +54,7 @@ const postChoice = pdebounce(() => {
       )}
     >
       <RadioGroup.Item
-        class="group-hover:outline-1 group-hover:outline-gray-900 group-hover:outline-offset-2 group-hover:outline text-current"
+        class="hover:outline-1 hover:outline-gray-900 hover:outline-offset-2 hover:outline text-current"
         value={choice.id.toString()}
         id={uniqueId}
         on:click={() => {
@@ -77,7 +77,12 @@ const postChoice = pdebounce(() => {
     </div>
 
     {#if ctx.withCorrections && choice.explanation}
-      <p class={choice.correct ? "text-green-700" : "text-red-700"}>
+      <p
+        class={twMerge(
+          choice.correct ? "text-green-700" : "text-red-700",
+          "ml-10 my-2 text-sm glass-panel p-2",
+        )}
+      >
         {choice.explanation}
       </p>
     {/if}

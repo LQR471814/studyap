@@ -1,3 +1,5 @@
+import type { Span } from "@opentelemetry/api"
+
 export type Function<R extends Zod.ZodTypeAny> = {
   description?: string
   returns: R
@@ -30,6 +32,7 @@ export type GenerateResult<F extends FunctionDefs> = {
  */
 export interface LLM {
   generate<F extends FunctionDefs>(
-    options: GenerateRequest<F>,
+    span: Span | undefined,
+    request: GenerateRequest<F>,
   ): Promise<GenerateResult<F>>
 }
