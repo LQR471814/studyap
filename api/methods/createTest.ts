@@ -198,7 +198,7 @@ async function createTestInner(
       })
     }
 
-    await tx.insert(testStimulus).values(testStimuli)
+    await tx.insert(testStimulus).values(testStimuli).onConflictDoNothing()
 
     let questionNo = 0
     if (options.mcqCount > 0) {
