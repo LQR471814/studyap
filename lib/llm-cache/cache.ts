@@ -27,7 +27,6 @@ import { type Span, SpanStatusCode } from "@opentelemetry/api"
 import { createFnSpanner, narrowError } from "@/lib/telemetry/utils"
 import { createHash } from "node:crypto"
 import zodToJsonSchema from "zod-to-json-schema"
-import { readdirSync } from "node:fs"
 import { fileURLToPath } from "node:url"
 
 const fnSpan = createFnSpanner("llm-cache")

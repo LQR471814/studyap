@@ -22,7 +22,6 @@ import { FrqPrompts, McqPrompts, StimulusPrompts } from "./synthetic-prompts"
 import seedrandom from "seedrandom"
 import { SpanStatusCode, type Span } from "@opentelemetry/api"
 import { fnSpan } from "@/api/tracer"
-import { i } from "vitest/dist/reporters-yx5ZTtEV.js"
 
 async function retryLLMCache<F extends FunctionDefs, R>(
   span: Span | undefined,
@@ -343,6 +342,24 @@ export class LLMGenerator {
         )
       }
 
+      const answerChoice = z.object({
+        text: z
+          .string()
+          .describe(
+            "A plain text potential answer pertaining to the multiple choice question.",
+          ),
+        correct: z
+          .boolean()
+          .describe(
+            "A boolean that is true if this answer choice is the correct or one of the correct answer choices.",
+          ),
+        explanation: z
+          .string()
+          .describe(
+            "An explanation explaining why this answer is correct or incorrect as indicated by the 'correct' field.",
+          ),
+      })
+
       const questionObj = z.object({
         question: z
           .string()
@@ -350,35 +367,20 @@ export class LLMGenerator {
             this.config.mcqs.descriptions.question ??
             "The plain text question content of the multiple choice question.",
           ),
-        choices: z
-          .object({
-            text: z
-              .string()
-              .describe(
-                "A plain text potential answer pertaining to the multiple choice question.",
-              ),
-            correct: z
-              .boolean()
-              .describe(
-                "A boolean that is true if this answer choice is the correct or one of the correct answer choices.",
-              ),
-            explanation: z
-              .string()
-              .describe(
-                "An explanation explaining why this answer is correct or incorrect as indicated by the 'correct' field.",
-              ),
-          })
-          .array()
-          .describe(
-            "A list of potential answers for the multiple choice question, this must contain no more than 5 answers and no less than 4, it MUST contain at least ONE correct answer.",
-          ),
+        choiceA: answerChoice.describe("Answer choice A."),
+        choiceB: answerChoice.describe("Answer choice B."),
+        choiceC: answerChoice.describe("Answer choice C."),
+        choiceD: answerChoice.describe("Answer choice D."),
+        choiceE: answerChoice
+          .describe("Answer choice E, if necessary.")
+          .optional(),
       })
 
       const questionIterable = (
         span: Span | undefined,
         stimulus: (typeof stimuliRows)["mcqs"][number],
         answerCount: number,
-      ): { next(): Promise<z.TypeOf<typeof questionObj>> } => {
+      ) => {
         const unitNames = stimulus.units.map((u) => u.name)
 
         const messages: Message[] = [
@@ -422,7 +424,15 @@ export class LLMGenerator {
                   return
                 }
 
-                const correct = completion.choices.find((c) => c.correct)
+                const choices = [
+                  completion.choiceA,
+                  completion.choiceB,
+                  completion.choiceC,
+                  completion.choiceD,
+                  ...(completion.choiceE ? [completion.choiceE] : []),
+                ]
+
+                const correct = choices.find((c) => c.correct)
                 if (!correct) {
                   if (span.isRecording()) {
                     span.addEvent(
@@ -436,27 +446,14 @@ export class LLMGenerator {
                   return
                 }
 
-                if (
-                  completion.choices.length < 4 ||
-                  completion.choices.length > 5
-                ) {
-                  if (span.isRecording()) {
-                    span.addEvent(
-                      "generated mcq does not have between 4 and 5 answers",
-                      {
-                        "log.severity": "WARN",
-                        completion: JSON.stringify(completion),
-                      },
-                    )
-                  }
-                  return
-                }
-
                 messages.push({
                   role: "assistant",
                   content: JSON.stringify(completion),
                 })
-                return completion
+                return {
+                  question: completion.question,
+                  choices,
+                }
               },
             ),
           )
@@ -481,7 +478,14 @@ export class LLMGenerator {
       }
 
       const generatedQuestions: {
-        value: z.TypeOf<typeof questionObj>
+        value: {
+          question: string
+          choices: {
+            text: string
+            correct: boolean
+            explanation: string
+          }[]
+        }
         stimulus: (typeof stimuliRows)["mcqs"][number]
       }[] = []
 
