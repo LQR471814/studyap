@@ -21,8 +21,8 @@
     "db:generate:main": "drizzle-kit generate && drizzle-rel-gen -snapshot=\"drizzle/meta/0000_snapshot.json\" -src=\"lib/schema/schema.ts\" -module=\"./schema\" -outfile=\"lib/schema/schema.relations.ts\"",
     "db:generate:llm-cache": "drizzle-kit generate --config=lib/llm-cache/drizzle.config.ts && drizzle-rel-gen -snapshot=\"lib/llm-cache/drizzle/meta/0000_snapshot.json\" -src=\"lib/llm-cache/schema/schema.ts\" -module=\"./schema\" -outfile=\"lib/llm-cache/schema/schema.relations.ts\"",
     "db:generate": "pnpm db:generate:main && pnpm db:generate:llm-cache",
-    "db:push": "drizzle-kit push",
-    "db:view": "drizzle-kit studio",
+    "db:push": "dotenv -e .dev.vars -- drizzle-kit push",
+    "db:view": "dotenv -e .dev.vars -- drizzle-kit studio",
     "db:reset": "docker compose down -v && docker compose up -d && pnpm db:push"
   },
   "dependencies": {
