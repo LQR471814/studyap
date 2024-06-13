@@ -14,6 +14,11 @@ make sure you set the required environment variables and follow the steps under 
 
 then goto `http://localhost:5173` for the ui.
 
+## detailed documentation
+
+- [hosting guide](./docs/hosting.md)
+- [how auth works](./docs/auth.md)
+
 ## environment variables
 
 you should use a file called `.dev.vars` to keep your environment variables.
@@ -37,14 +42,6 @@ DATABASE_AUTH_TOKEN="..."
 
 > [!NOTE]
 > in projects using vite only `VITE_` prefixed environment variables will be exposed by `import.meta.env`.
-
-## setting up mailgun
-
-mailgun is a service for sending emails, you can get a free account which can send 100 emails a day. but to actually send an email, you have to register your own domain.
-
-after registering for an account, go to `Send > Domains > Add new domain`, enter your domain name and proceed with mailgun's instructions on adding your own domain (I'd assume it would be `studyap.org`).
-
-after that, create an API key and store it in `MAILGUN_API_KEY`.
 
 ## scripts
 

@@ -9,6 +9,7 @@
     "dev:gen": "dotenv -e .dev.vars -- pnpm tsx cmd/generator/apush-dev",
     "dev": "mprocs",
     "build": "dotenv -e .dev.vars -- vite build",
+    "deploy:api": "wrangler deploy",
     "preview": "vite preview",
     "lint:tsc": "tsc --noEmit",
     "lint:svelte": "svelte-check --tsconfig ./tsconfig.json",
