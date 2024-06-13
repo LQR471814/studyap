@@ -373,7 +373,7 @@ export class LLMGenerator {
         choiceD: answerChoice.describe("Answer choice D, this should be an object."),
         choiceE: answerChoice
           .describe("Answer choice E, if necessary, this should be an object if defined.")
-          .optional(),
+          .nullish(),
       })
 
       const questionIterable = (
