@@ -367,12 +367,12 @@ export class LLMGenerator {
             this.config.mcqs.descriptions.question ??
             "The plain text question content of the multiple choice question.",
           ),
-        choiceA: answerChoice.describe("Answer choice A."),
-        choiceB: answerChoice.describe("Answer choice B."),
-        choiceC: answerChoice.describe("Answer choice C."),
-        choiceD: answerChoice.describe("Answer choice D."),
+        choiceA: answerChoice.describe("Answer choice A, this should be an object."),
+        choiceB: answerChoice.describe("Answer choice B, this should be an object."),
+        choiceC: answerChoice.describe("Answer choice C, this should be an object."),
+        choiceD: answerChoice.describe("Answer choice D, this should be an object."),
         choiceE: answerChoice
-          .describe("Answer choice E, if necessary.")
+          .describe("Answer choice E, if necessary, this should be an object if defined.")
           .optional(),
       })
 
