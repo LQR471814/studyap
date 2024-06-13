@@ -3,6 +3,10 @@ import { mcqAttempt, questionChoice } from "@/lib/schema/schema"
 import { and, eq, inArray, isNotNull, or } from "drizzle-orm"
 
 export async function evalMCQs(db: DB, questionIds: number[]) {
+  if (questionIds.length === 0) {
+    return
+  }
+
   const responded = () =>
     db
       .select({

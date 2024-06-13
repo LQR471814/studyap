@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { api } from "@/src/api";
+  import { protectedApi } from "@/src/api";
   import Question from "./question.svelte";
   import * as TextArea from "@ui-lib/components/ui/textarea";
   import pDebounce from "p-debounce";
@@ -19,7 +19,7 @@
   export let questionId: number;
 
   const save = pDebounce(async (response: string) => {
-    await api.fillFRQs.mutate([
+    await protectedApi.fillFRQs.mutate([
       {
         testAttemptId: ctx.testAttemptId,
         questionId,

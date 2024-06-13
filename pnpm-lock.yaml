@@ -35,6 +35,9 @@ importers:
       '@opentelemetry/semantic-conventions':
         specifier: ^1.25.0
         version: 1.25.0
+      '@tanstack/svelte-query':
+        specifier: ^5.45.0
+        version: 5.45.0(svelte@4.2.18)
       '@trpc/client':
         specifier: 11.0.0-rc.382
         version: 11.0.0-rc.382(@trpc/server@11.0.0-rc.382)
@@ -1511,6 +1514,14 @@ packages:
 
   '@swc/helpers@0.5.11':
     resolution: {integrity: sha512-YNlnKRWF2sVojTpIyzwou9XoTNbzbzONwRhOoniEioF1AtaitTvVZblaQRrAzChWQ1bLYyYSWzM18y4WwgzJ+A==}
+
+  '@tanstack/query-core@5.45.0':
+    resolution: {integrity: sha512-RVfIZQmFUTdjhSAAblvueimfngYyfN6HlwaJUPK71PKd7yi43Vs1S/rdimmZedPWX/WGppcq/U1HOj7O7FwYxw==}
+
+  '@tanstack/svelte-query@5.45.0':
+    resolution: {integrity: sha512-2IfvB437cDq/4xSQO+v8A+GgsZ6F5o6SusCPJ1i8uOIt2p9eljlsvpFoNrZ0reD9O1aAvbieg0JV77QSMiJDEA==}
+    peerDependencies:
+      svelte: ^3.54.0 || ^4.0.0 || ^5.0.0-next.0
 
   '@trpc/client@11.0.0-rc.382':
     resolution: {integrity: sha512-O+MSRed5r8AJJ+j3peZkd/b7WINEkhKaFilRuPH8VQsrlMZToxUzQl9aShPIgnOhhQGxvWqdh2lXwUvrFCea/A==}
@@ -5051,6 +5062,13 @@ snapshots:
   '@swc/helpers@0.5.11':
     dependencies:
       tslib: 2.6.3
+
+  '@tanstack/query-core@5.45.0': {}
+
+  '@tanstack/svelte-query@5.45.0(svelte@4.2.18)':
+    dependencies:
+      '@tanstack/query-core': 5.45.0
+      svelte: 4.2.18
 
   '@trpc/client@11.0.0-rc.382(@trpc/server@11.0.0-rc.382)':
     dependencies:

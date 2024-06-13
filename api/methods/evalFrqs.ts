@@ -14,6 +14,10 @@ export async function evalFRQs(
   llm: LLM,
   questionIds: number[],
 ) {
+  if (questionIds.length === 0) {
+    return
+  }
+
   return fnSpan(span, "evalFRQs", async (span) => {
     if (span.isRecording()) {
       span.setAttribute("questionIds", JSON.stringify(questionIds))

@@ -1,7 +1,8 @@
 import { instrument, type ResolveConfigFn } from "@microlabs/otel-cf-workers"
+import type { Env } from "./main"
 import handler from "./main"
 
-import type { Env } from "./main"
+export type { Env }
 
 const config: ResolveConfigFn = (env: Env) => {
   if (!env.HONEYCOMB_API_KEY) {
@@ -21,7 +22,5 @@ const config: ResolveConfigFn = (env: Env) => {
     service: { name: "cloudflare_workers" },
   }
 }
-
-export type { Env }
 
 export default instrument(handler, config)

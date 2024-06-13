@@ -1,9 +1,61 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "f7c8ded9-e5eb-425d-81f7-e1932a78524a",
+  "id": "9b372415-100b-4f44-989f-29ba8e28e1f1",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
+    "activeToken": {
+      "name": "activeToken",
+      "columns": {
+        "token": {
+          "name": "token",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "userEmail": {
+          "name": "userEmail",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "expiresAt": {
+          "name": "expiresAt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "activeToken_userEmail_user_email_fk": {
+          "name": "activeToken_userEmail_user_email_fk",
+          "tableFrom": "activeToken",
+          "tableTo": "user",
+          "columnsFrom": [
+            "userEmail"
+          ],
+          "columnsTo": [
+            "email"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
+        }
+      },
+      "compositePrimaryKeys": {
+        "activeToken_token_userEmail_pk": {
+          "columns": [
+            "token",
+            "userEmail"
+          ],
+          "name": "activeToken_token_userEmail_pk"
+        }
+      },
+      "uniqueConstraints": {}
+    },
     "frqAttempt": {
       "name": "frqAttempt",
       "columns": {
@@ -233,6 +285,51 @@
           "onUpdate": "no action"
         }
       },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "pendingVerification": {
+      "name": "pendingVerification",
+      "columns": {
+        "code": {
+          "name": "code",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "token": {
+          "name": "token",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "email": {
+          "name": "email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "expiresAt": {
+          "name": "expiresAt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "pendingVerification_token_unique": {
+          "name": "pendingVerification_token_unique",
+          "columns": [
+            "token"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },

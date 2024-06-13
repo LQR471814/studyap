@@ -11,6 +11,30 @@ const CASCADE = {
   onUpdate: "cascade",
 } as const
 
+export const pendingVerification = sqliteTable(
+  "pendingVerification",
+  {
+    code: text("code").notNull().primaryKey(),
+    token: text("token").notNull().unique(),
+    email: text("email").notNull(),
+    expiresAt: int("expiresAt", { mode: "timestamp" }).notNull(),
+  },
+)
+
+export const activeToken = sqliteTable(
+  "activeToken",
+  {
+    token: text("token").notNull(),
+    userEmail: text("userEmail")
+      .notNull()
+      .references(() => user.email, CASCADE),
+    expiresAt: int("expiresAt", { mode: "timestamp" }).notNull(),
+  },
+  (table) => ({
+    pkey: primaryKey({ columns: [table.token, table.userEmail] }),
+  }),
+)
+
 export const user = sqliteTable("user", {
   email: text("email").notNull().primaryKey(),
 })

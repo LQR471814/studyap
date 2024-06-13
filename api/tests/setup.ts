@@ -3,14 +3,14 @@ import { createClient } from "@libsql/client"
 import { GenericContainer, Wait } from "testcontainers"
 import { migrate } from "drizzle-orm/sqlite-proxy/migrator"
 import { join, dirname } from "node:path"
-import { t } from "../trpc"
 import { generateAll } from "@/cmd/generator/dummy"
 import { user } from "@/lib/schema/schema"
 import { isomorphicLLMFromEnv } from "@/lib/llm/isomorphic"
-import { router } from "../router"
+import { protectedRouter, t } from "../protected"
 import { LLMCache } from "@/lib/llm-cache/cache"
 import { initializeOtel } from "@/lib/telemetry/nodejs"
 import type { Span } from "@opentelemetry/api"
+import { Mailgun } from "@/lib/mailgun"
 
 initializeOtel("test:api")
 
@@ -53,7 +53,7 @@ export async function setupDummyDB(span: Span) {
   const dummyData = await generateAll({ db, llm: new LLMCache({ llm }) })
 
   // setup local trpc API
-  const createApi = t.createCallerFactory(router)
+  const createApi = t.createCallerFactory(protectedRouter)
   const api = createApi({
     userEmail: testEmail,
     db,

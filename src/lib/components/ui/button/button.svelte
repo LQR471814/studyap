@@ -15,7 +15,7 @@ export { className as class }
 
 <ButtonPrimitive.Root
 	{builders}
-	class={cn(buttonVariants({ variant, size, className }), "shadow-xl")}
+	class={cn(buttonVariants({ variant, size, className }), "shadow-xl rounded-lg")}
 	type="button"
 	{...$$restProps}
 	on:click

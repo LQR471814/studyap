@@ -1,3 +1,11 @@
+CREATE TABLE `activeToken` (
+	`token` text NOT NULL,
+	`userEmail` text NOT NULL,
+	`expiresAt` integer NOT NULL,
+	PRIMARY KEY(`token`, `userEmail`),
+	FOREIGN KEY (`userEmail`) REFERENCES `user`(`email`) ON UPDATE cascade ON DELETE cascade
+);
+--> statement-breakpoint
 CREATE TABLE `frqAttempt` (
 	`testId` integer NOT NULL,
 	`stimulusId` integer NOT NULL,
@@ -24,6 +32,13 @@ CREATE TABLE `mcqAttempt` (
 	FOREIGN KEY (`questionId`) REFERENCES `question`(`id`) ON UPDATE cascade ON DELETE cascade,
 	FOREIGN KEY (`response`) REFERENCES `questionChoice`(`id`) ON UPDATE cascade ON DELETE cascade,
 	FOREIGN KEY (`testId`,`stimulusId`) REFERENCES `testStimulus`(`testId`,`stimulusId`) ON UPDATE no action ON DELETE no action
+);
+--> statement-breakpoint
+CREATE TABLE `pendingVerification` (
+	`code` text PRIMARY KEY NOT NULL,
+	`token` text NOT NULL,
+	`email` text NOT NULL,
+	`expiresAt` integer NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE `question` (
@@ -111,3 +126,5 @@ CREATE TABLE `unit` (
 CREATE TABLE `user` (
 	`email` text PRIMARY KEY NOT NULL
 );
+--> statement-breakpoint
+CREATE UNIQUE INDEX `pendingVerification_token_unique` ON `pendingVerification` (`token`);

@@ -1,5 +1,11 @@
 import { relations } from "drizzle-orm";
-import { frqAttempt, mcqAttempt, question, questionChoice, questionFormat, questionUnit, stimulus, stimulusUnit, subject, testAttempt, testStimulus, unit, user } from "./schema";
+import { activeToken, frqAttempt, mcqAttempt, pendingVerification, question, questionChoice, questionFormat, questionUnit, stimulus, stimulusUnit, subject, testAttempt, testStimulus, unit, user } from "./schema";
+export const activeTokenRelations = relations(activeToken, ({ one, many }) => ({
+    user: one(user, {
+        fields: [activeToken.userEmail],
+        references: [user.email]
+    })
+}));
 export const frqAttemptRelations = relations(frqAttempt, ({ one, many }) => ({
     testAttempt: one(testAttempt, {
         fields: [frqAttempt.testId],
@@ -132,5 +138,6 @@ export const unitRelations = relations(unit, ({ one, many }) => ({
     })
 }));
 export const userRelations = relations(user, ({ one, many }) => ({
+    activeToken: many(activeToken),
     testAttempt: many(testAttempt)
 }));

@@ -1,9 +1,8 @@
 ## authentication
 
-> since I wanted to learn how to roll my own auth (and not learn yet another auth SAAS thing) here is the authentication flow in a state-machine format.
-
 1. login/signup screen: a single email input box, inputting an email will prompt you to enter a verification code sent to the email given.
-2. 
+2. pending verification row is inserted (verification code + token + userEmail)
+3. when verification code is entered, search for pending verification row, if found return token and insert active token row (token + userEmail + expiresAt), if user with userEmail not found, insert new user.
 
 ### weaknesses
 

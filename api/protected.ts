@@ -1,3 +1,6 @@
+import type { DB } from "@/lib/db"
+import type { LLM } from "@/lib/llm/core"
+import type { Mailgun } from "@/lib/mailgun"
 import {
   frqAttempt,
   mcqAttempt,
@@ -6,18 +9,31 @@ import {
   unit,
   user,
 } from "@/lib/schema/schema"
+import type { Span } from "@opentelemetry/api"
+import { initTRPC } from "@trpc/server"
 import { and, eq } from "drizzle-orm"
+import superjson from "superjson"
 import { z } from "zod"
-import { t } from "./trpc"
 import { createTest, createTestOptions } from "./methods/createTest"
-import { getAvailableQuestionCount } from "./methods/getAvailableQuestions"
-import { listCompleteTests } from "./methods/listCompleteTests"
-import { evalTest } from "./methods/evalTest"
 import { evalFRQs } from "./methods/evalFrqs"
 import { evalMCQs } from "./methods/evalMcqs"
+import { evalTest } from "./methods/evalTest"
+import { getAvailableQuestionCount } from "./methods/getAvailableQuestions"
 import { getTest } from "./methods/getTest"
+import { listCompleteTests } from "./methods/listCompleteTests"
 
-export const router = t.router({
+type Context = {
+  span: Span
+  db: DB
+  llm: LLM
+  userEmail: string
+}
+
+export const t = initTRPC.context<Context>().create({
+  transformer: superjson,
+})
+
+export const protectedRouter = t.router({
   profile: t.procedure.query(async ({ ctx: { db, userEmail } }) => {
     await db.insert(user).values({ email: userEmail }).onConflictDoNothing()
     const [profile] = await db
@@ -37,7 +53,7 @@ export const router = t.router({
     }),
   deleteTest: t.procedure
     .input(z.number().describe("test.id"))
-    .query(async ({ ctx: { db }, input }) => {
+    .mutation(async ({ ctx: { db }, input }) => {
       await db.delete(testAttempt).where(eq(testAttempt.id, input))
     }),
   listSubjects: t.procedure.query(({ ctx: { db } }) => {
@@ -167,5 +183,6 @@ export const router = t.router({
   }),
 })
 
-export type Router = typeof router
-export type Test = Awaited<ReturnType<(typeof router)["getTest"]>>
+export type ProtectedRouter = typeof protectedRouter
+export type Test = Awaited<ReturnType<(typeof protectedRouter)["getTest"]>>
+

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { api } from "@/src/api";
+  import { protectedApi } from "@/src/api";
   import { Label } from "@ui-lib/components/ui/label";
   import * as RadioGroup from "@ui-lib/components/ui/radio-group";
   import pdebounce from "p-debounce";
@@ -25,7 +25,7 @@
     if (!selected) {
       return;
     }
-    api.fillMCQs.mutate({
+    protectedApi.fillMCQs.mutate({
       testAttemptId: ctx.testAttemptId,
       questions: [
         {
