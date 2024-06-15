@@ -85,6 +85,9 @@ async function createTestInner(
     .groupBy(question.id)
     // for some reason .limit() will ignore mcqCount if it is 0
     .limit(options.mcqCount === 0 ? 1 : options.mcqCount)
+  if (options.mcqCount === 0) {
+    mcqs.splice(0, 1)
+  }
 
   if (span?.isRecording()) {
     span.addEvent("returned mcqs", {
@@ -130,6 +133,9 @@ async function createTestInner(
     .groupBy(question.id)
     // for some reason .limit() will ignore frqCount if it is 0
     .limit(options.frqCount === 0 ? 1 : options.frqCount)
+  if (options.frqCount === 0) {
+    frqs.splice(0, 1)
+  }
 
   if (frqs.length < options.frqCount) {
     return new Error(
@@ -172,7 +178,6 @@ async function createTestInner(
       lastStimulusId = question.stimulusId
       groupNumber++
     }
-    lastStimulusId = undefined
 
     if (span?.isRecording()) {
       span.addEvent("returned stimuli 1", {
@@ -180,6 +185,7 @@ async function createTestInner(
       })
     }
 
+    lastStimulusId = undefined
     for (const question of frqs) {
       if (question.stimulusId === lastStimulusId) {
         continue

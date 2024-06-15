@@ -4,89 +4,148 @@ import {
   subject as subjectRow,
   unit,
 } from "@/lib/schema/schema"
-import type { Span } from "@opentelemetry/api"
-import { expect, test } from "vitest"
-import { fnSpan } from "../tracer"
-import { setupDummyDB } from "./setup"
+import { describe, expect, test } from "vitest"
+import { setupAPI, setupDummyDB } from "./setup"
+import type { Test } from "../protected"
+import { createFnSpanner } from "@/lib/telemetry/utils"
 
-test("createTest", () => {
-  async function testUserCreateTest(span: Span, userEmail: string) {
-    const { api, testEmail, subject, frqs, mcqs } = await setupDummyDB(
-      span,
-      userEmail,
-    )
+const fnSpan = createFnSpanner("test_protected")
 
-    try {
-      await api.createTest({
-        subject: subject.id,
-        frqCount: 0,
-        mcqCount: 0,
-      })
-      throw new Error("creating an empty test should throw")
-    } catch (err) {
-      expect((err as Error).message).toContain("empty test")
+describe("createTest", () => {
+  return fnSpan(undefined, "createTest", async (span) => {
+    function hasEmptyQuestionGroups(test: Test): boolean {
+      for (const group of test.testStimulus) {
+        if (group.frqAttempt.length === 0 && group.mcqAttempt.length === 0) {
+          return true
+        }
+      }
+      return false
     }
 
-    const testAttemptId1 = await api.createTest({
-      subject: subject.id,
-      frqCount: frqs.length,
-      mcqCount: mcqs.length,
+    function testRepeatFor3Users(
+      name: string,
+      fn: (
+        ctx: Awaited<ReturnType<typeof setupDummyDB>>,
+        userEmail: string,
+      ) => Promise<void>,
+      timeout?: number,
+    ) {
+      test(
+        name,
+        async () => {
+          const ctx = await setupDummyDB(span)
+
+          await Promise.all(
+            ["alice@email.com", "bob@email.com", "cole@email.com"].map(
+              (userEmail) => fn(ctx, userEmail),
+            ),
+          )
+        },
+        timeout,
+      )
+    }
+
+    testRepeatFor3Users("happy path", (ctx, userEmail) => {
+      const { db, subject, frqs, mcqs } = ctx
+
+      return fnSpan(span, "happy path", async (span) => {
+        span.setAttribute("custom.userEmail", userEmail)
+
+        const { api } = await setupAPI(db, span, userEmail)
+
+        try {
+          await api.createTest({
+            subject: subject.id,
+            frqCount: 0,
+            mcqCount: 0,
+          })
+          throw new Error("creating an empty test should throw")
+        } catch (err) {
+          expect((err as Error).message).toContain("empty test")
+        }
+
+        const testAttemptId1 = await api.createTest({
+          subject: subject.id,
+          frqCount: frqs.length,
+          mcqCount: mcqs.length,
+        })
+
+        const listed = await api.listIncompleteTests()
+        expect(listed.find((l) => l.id === testAttemptId1)).toBeDefined()
+
+        const test = await api.getTest(testAttemptId1)
+        expect(test).toBeDefined()
+        expect(test?.userEmail).toEqual(userEmail)
+        expect(test?.subjectId).toEqual(subject.id)
+        expect(test.testStimulus.length).toBeGreaterThan(0)
+
+        const noStimulus = test.testStimulus.find(
+          (s) => s.mcqAttempt.length > 0 && s.stimulus.content === null,
+        )
+        expect(noStimulus?.mcqAttempt.length).toBe(1)
+
+        const mcqWithStimulus = test.testStimulus.find(
+          (s) => s.mcqAttempt.length > 0 && s.stimulusId !== null,
+        )
+        expect(mcqWithStimulus?.mcqAttempt.length).toBe(2)
+
+        const frqWithStimulus = test.testStimulus.find(
+          (s) => s.frqAttempt.length > 0,
+        )
+        expect(frqWithStimulus?.frqAttempt.length).toBe(1)
+
+        try {
+          await api.createTest({
+            subject: subject.id,
+            frqCount: frqs.length,
+            mcqCount: 0,
+          })
+          throw new Error(
+            "creating a test with less frqs available than expected should be impossible",
+          )
+        } catch (err) {
+          expect((err as Error).message).toContain("not enough")
+        }
+        await api.deleteTest(testAttemptId1)
+      })
     })
 
-    const listed = await api.listIncompleteTests()
-    expect(listed.find((l) => l.id === testAttemptId1)).toBeDefined()
+    testRepeatFor3Users("only-mcq or only-frq", (ctx, userEmail) => {
+      const { db, subject, frqs, mcqs } = ctx
 
-    const test = await api.getTest(testAttemptId1)
-    expect(test).toBeDefined()
-    expect(test?.userEmail).toEqual(testEmail)
-    expect(test?.subjectId).toEqual(subject.id)
-    expect(test.testStimulus.length).toBeGreaterThan(0)
+      return fnSpan(span, `only-mcq or only-frq -> ${userEmail}`, async (span) => {
+        span.setAttribute("custom.userEmail", userEmail)
 
-    const noStimulus = test.testStimulus.find(
-      (s) => s.mcqAttempt.length > 0 && s.stimulus.content === null,
-    )
-    expect(noStimulus?.mcqAttempt.length).toBe(1)
+        const { api } = await setupAPI(db, span, userEmail)
 
-    const mcqWithStimulus = test.testStimulus.find(
-      (s) => s.mcqAttempt.length > 0 && s.stimulusId !== null,
-    )
-    expect(mcqWithStimulus?.mcqAttempt.length).toBe(2)
+        const testAttemptId2 = await api.createTest({
+          subject: subject.id,
+          frqCount: 0,
+          mcqCount: mcqs.length,
+        })
+        const testAttemptId3 = await api.createTest({
+          subject: subject.id,
+          frqCount: frqs.length,
+          mcqCount: 0,
+        })
 
-    const frqWithStimulus = test.testStimulus.find(
-      (s) => s.frqAttempt.length > 0,
-    )
-    expect(frqWithStimulus?.frqAttempt.length).toBe(1)
+        const noFrqs = await api.getTest(testAttemptId2)
+        const noMcqs = await api.getTest(testAttemptId3)
 
-    try {
-      await api.createTest({
-        subject: subject.id,
-        frqCount: frqs.length,
-        mcqCount: 0,
+        expect(hasEmptyQuestionGroups(noFrqs)).toBe(false)
+        expect(hasEmptyQuestionGroups(noMcqs)).toBe(false)
+
+        await api.deleteTest(testAttemptId2)
+        await api.deleteTest(testAttemptId3)
       })
-      throw new Error(
-        "creating a test with less frqs available than expected should be impossible",
-      )
-    } catch (err) {
-      expect((err as Error).message).toContain("not enough")
-    }
-    await api.deleteTest(testAttemptId1)
-  }
-
-  return fnSpan(undefined, "test:createTest", (span) => {
-    return Promise.all([
-      testUserCreateTest(span, "alice@email.com"),
-      testUserCreateTest(span, "bob@email.com"),
-      testUserCreateTest(span, "sandy@email.com"),
-    ])
+    }, 30000)
   })
 })
 
 test("getAvailableQuestions", () => {
-  return fnSpan(undefined, "test:getAvailableQuestions", async (span) => {
-    const { db, api, units, subject, frqs, mcqs } = await setupDummyDB(
-      span,
-      "getAvailableQuestions@email.com",
-    )
+  return fnSpan(undefined, "getAvailableQuestions", async (span) => {
+    const { db, units, subject, frqs, mcqs } = await setupDummyDB(span)
+    const { api } = await setupAPI(db, span, "getAvailableQuestions@email.com")
 
     span.addEvent("db snapshot", {
       "custom.subject": JSON.stringify(await db.select().from(subjectRow)),
