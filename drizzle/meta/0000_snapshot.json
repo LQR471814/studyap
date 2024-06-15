@@ -35,22 +35,15 @@
           "name": "activeToken_userEmail_user_email_fk",
           "tableFrom": "activeToken",
           "tableTo": "user",
-          "columnsFrom": [
-            "userEmail"
-          ],
-          "columnsTo": [
-            "email"
-          ],
+          "columnsFrom": ["userEmail"],
+          "columnsTo": ["email"],
           "onDelete": "cascade",
           "onUpdate": "cascade"
         }
       },
       "compositePrimaryKeys": {
         "activeToken_token_userEmail_pk": {
-          "columns": [
-            "token",
-            "userEmail"
-          ],
+          "columns": ["token", "userEmail"],
           "name": "activeToken_token_userEmail_pk"
         }
       },
@@ -115,12 +108,8 @@
           "name": "frqAttempt_testId_testAttempt_id_fk",
           "tableFrom": "frqAttempt",
           "tableTo": "testAttempt",
-          "columnsFrom": [
-            "testId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["testId"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "cascade"
         },
@@ -128,12 +117,8 @@
           "name": "frqAttempt_stimulusId_stimulus_id_fk",
           "tableFrom": "frqAttempt",
           "tableTo": "stimulus",
-          "columnsFrom": [
-            "stimulusId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["stimulusId"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "cascade"
         },
@@ -141,12 +126,8 @@
           "name": "frqAttempt_questionId_question_id_fk",
           "tableFrom": "frqAttempt",
           "tableTo": "question",
-          "columnsFrom": [
-            "questionId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["questionId"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "cascade"
         },
@@ -154,14 +135,8 @@
           "name": "frqAttempt_testId_stimulusId_testStimulus_testId_stimulusId_fk",
           "tableFrom": "frqAttempt",
           "tableTo": "testStimulus",
-          "columnsFrom": [
-            "testId",
-            "stimulusId"
-          ],
-          "columnsTo": [
-            "testId",
-            "stimulusId"
-          ],
+          "columnsFrom": ["testId", "stimulusId"],
+          "columnsTo": ["testId", "stimulusId"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -221,12 +196,8 @@
           "name": "mcqAttempt_testId_testAttempt_id_fk",
           "tableFrom": "mcqAttempt",
           "tableTo": "testAttempt",
-          "columnsFrom": [
-            "testId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["testId"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "cascade"
         },
@@ -234,12 +205,8 @@
           "name": "mcqAttempt_stimulusId_stimulus_id_fk",
           "tableFrom": "mcqAttempt",
           "tableTo": "stimulus",
-          "columnsFrom": [
-            "stimulusId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["stimulusId"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "cascade"
         },
@@ -247,12 +214,8 @@
           "name": "mcqAttempt_questionId_question_id_fk",
           "tableFrom": "mcqAttempt",
           "tableTo": "question",
-          "columnsFrom": [
-            "questionId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["questionId"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "cascade"
         },
@@ -260,12 +223,8 @@
           "name": "mcqAttempt_response_questionChoice_id_fk",
           "tableFrom": "mcqAttempt",
           "tableTo": "questionChoice",
-          "columnsFrom": [
-            "response"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["response"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "cascade"
         },
@@ -273,14 +232,8 @@
           "name": "mcqAttempt_testId_stimulusId_testStimulus_testId_stimulusId_fk",
           "tableFrom": "mcqAttempt",
           "tableTo": "testStimulus",
-          "columnsFrom": [
-            "testId",
-            "stimulusId"
-          ],
-          "columnsTo": [
-            "testId",
-            "stimulusId"
-          ],
+          "columnsFrom": ["testId", "stimulusId"],
+          "columnsTo": ["testId", "stimulusId"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -323,9 +276,7 @@
       "indexes": {
         "pendingVerification_token_unique": {
           "name": "pendingVerification_token_unique",
-          "columns": [
-            "token"
-          ],
+          "columns": ["token"],
           "isUnique": true
         }
       },
@@ -399,12 +350,8 @@
           "name": "question_subjectId_subject_id_fk",
           "tableFrom": "question",
           "tableTo": "subject",
-          "columnsFrom": [
-            "subjectId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["subjectId"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "cascade"
         },
@@ -412,12 +359,8 @@
           "name": "question_stimulusId_stimulus_id_fk",
           "tableFrom": "question",
           "tableTo": "stimulus",
-          "columnsFrom": [
-            "stimulusId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["stimulusId"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "cascade"
         }
@@ -470,12 +413,8 @@
           "name": "questionChoice_questionId_question_id_fk",
           "tableFrom": "questionChoice",
           "tableTo": "question",
-          "columnsFrom": [
-            "questionId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["questionId"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "cascade"
         }
@@ -507,12 +446,8 @@
           "name": "questionUnit_unitId_unit_id_fk",
           "tableFrom": "questionUnit",
           "tableTo": "unit",
-          "columnsFrom": [
-            "unitId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["unitId"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "cascade"
         },
@@ -520,22 +455,15 @@
           "name": "questionUnit_questionId_question_id_fk",
           "tableFrom": "questionUnit",
           "tableTo": "question",
-          "columnsFrom": [
-            "questionId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["questionId"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "cascade"
         }
       },
       "compositePrimaryKeys": {
         "questionUnit_questionId_unitId_pk": {
-          "columns": [
-            "questionId",
-            "unitId"
-          ],
+          "columns": ["questionId", "unitId"],
           "name": "questionUnit_questionId_unitId_pk"
         }
       },
@@ -600,12 +528,8 @@
           "name": "stimulus_subjectId_subject_id_fk",
           "tableFrom": "stimulus",
           "tableTo": "subject",
-          "columnsFrom": [
-            "subjectId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["subjectId"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "cascade"
         }
@@ -637,12 +561,8 @@
           "name": "stimulusUnit_stimulusId_stimulus_id_fk",
           "tableFrom": "stimulusUnit",
           "tableTo": "stimulus",
-          "columnsFrom": [
-            "stimulusId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["stimulusId"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "cascade"
         },
@@ -650,22 +570,15 @@
           "name": "stimulusUnit_unitId_unit_id_fk",
           "tableFrom": "stimulusUnit",
           "tableTo": "unit",
-          "columnsFrom": [
-            "unitId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["unitId"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "cascade"
         }
       },
       "compositePrimaryKeys": {
         "stimulusUnit_stimulusId_unitId_pk": {
-          "columns": [
-            "stimulusId",
-            "unitId"
-          ],
+          "columns": ["stimulusId", "unitId"],
           "name": "stimulusUnit_stimulusId_unitId_pk"
         }
       },
@@ -746,12 +659,8 @@
           "name": "testAttempt_subjectId_subject_id_fk",
           "tableFrom": "testAttempt",
           "tableTo": "subject",
-          "columnsFrom": [
-            "subjectId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["subjectId"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "cascade"
         },
@@ -759,12 +668,8 @@
           "name": "testAttempt_userEmail_user_email_fk",
           "tableFrom": "testAttempt",
           "tableTo": "user",
-          "columnsFrom": [
-            "userEmail"
-          ],
-          "columnsTo": [
-            "email"
-          ],
+          "columnsFrom": ["userEmail"],
+          "columnsTo": ["email"],
           "onDelete": "cascade",
           "onUpdate": "cascade"
         }
@@ -803,12 +708,8 @@
           "name": "testStimulus_testId_testAttempt_id_fk",
           "tableFrom": "testStimulus",
           "tableTo": "testAttempt",
-          "columnsFrom": [
-            "testId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["testId"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "cascade"
         },
@@ -816,22 +717,15 @@
           "name": "testStimulus_stimulusId_stimulus_id_fk",
           "tableFrom": "testStimulus",
           "tableTo": "stimulus",
-          "columnsFrom": [
-            "stimulusId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["stimulusId"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "cascade"
         }
       },
       "compositePrimaryKeys": {
         "testStimulus_testId_stimulusId_pk": {
-          "columns": [
-            "stimulusId",
-            "testId"
-          ],
+          "columns": ["stimulusId", "testId"],
           "name": "testStimulus_testId_stimulusId_pk"
         }
       },
@@ -875,12 +769,8 @@
           "name": "unit_subjectId_subject_id_fk",
           "tableFrom": "unit",
           "tableTo": "subject",
-          "columnsFrom": [
-            "subjectId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["subjectId"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "cascade"
         }

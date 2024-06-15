@@ -1,5 +1,5 @@
-import type { Config } from "../llm/config"
 import { config as original } from "../ap-us-history/config"
+import type { Config } from "../llm/config"
 
 export const config: Config = {
   version: original.version,

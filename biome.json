@@ -1,7 +1,8 @@
 {
   "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
   "files": {
-    "ignoreUnknown": true
+    "ignoreUnknown": true,
+    "ignore": ["**/*.svelte"]
   },
   "vcs": {
     "enabled": true,
@@ -19,25 +20,13 @@
   },
   "linter": {
     "rules": {
+      "correctness": {
+        "noUnusedImports": "error"
+      },
       "style": {
         "useConst": "off",
         "noNonNullAssertion": "off"
       }
     }
-  },
-  "overrides": [
-    {
-      "include": [
-        "*.svelte"
-      ],
-      "linter": {
-        "rules": {
-          "style": {
-            "useConst": "off",
-            "useImportType": "off"
-          }
-        }
-      }
-    }
-  ]
+  }
 }

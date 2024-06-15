@@ -1,4 +1,7 @@
+import { createFnSpanner, narrowError } from "@/lib/telemetry/utils"
 import { FunctionCallingMode, GoogleGenerativeAI } from "@google/generative-ai"
+import { type Span, SpanStatusCode } from "@opentelemetry/api"
+import { unwrapObject, zodToGeminiSchema } from "zod-to-gemini-schema"
 import type {
   FunctionDefs,
   GenerateRequest,
@@ -6,9 +9,6 @@ import type {
   LLM,
   ModelType,
 } from "./core"
-import { zodToGeminiSchema, unwrapObject } from "zod-to-gemini-schema"
-import { SpanStatusCode, type Span } from "@opentelemetry/api"
-import { createFnSpanner, narrowError } from "@/lib/telemetry/utils"
 
 const fnSpan = createFnSpanner("google-llm")
 
@@ -122,6 +122,7 @@ export class Gemini implements LLM {
 
       const text = candidate.content.parts
         .filter((part) => part.text)
+        .map((part) => part.text)
         .join("\n")
 
       if (span.isRecording()) {

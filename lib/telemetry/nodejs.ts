@@ -1,7 +1,10 @@
-import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-http"
 import { DiagConsoleLogger, DiagLogLevel, diag } from "@opentelemetry/api"
+import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-http"
 import { Resource } from "@opentelemetry/resources"
-import { BatchSpanProcessor, NodeTracerProvider } from "@opentelemetry/sdk-trace-node"
+import {
+  BatchSpanProcessor,
+  NodeTracerProvider,
+} from "@opentelemetry/sdk-trace-node"
 import { SEMRESATTRS_SERVICE_NAME } from "@opentelemetry/semantic-conventions"
 
 export function initializeOtel(serviceName: string, debug?: boolean) {
@@ -20,4 +23,6 @@ export function initializeOtel(serviceName: string, debug?: boolean) {
   })
   provider.addSpanProcessor(new BatchSpanProcessor(exporter))
   provider.register()
+
+  return () => provider.shutdown()
 }

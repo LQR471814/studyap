@@ -1,8 +1,8 @@
-import { config } from "./config"
-import { generate } from "../llm"
 import { initializeOtel } from "@/lib/telemetry/nodejs"
+import { generate } from "../llm"
+import { config } from "./config"
 
-initializeOtel("generator-cli:apush-dev", true)
+const cleanup = initializeOtel("generator-cli:apush-dev", true)
 const [summary, res] = await generate(undefined, config)
 
 console.log(summary)
@@ -13,5 +13,5 @@ console.dir(res.mcqs, { depth: 8 })
 console.log("\n----- FRQs -----\n")
 console.dir(res.frqs, { depth: 8 })
 
+await cleanup()
 process.exit(0)
-

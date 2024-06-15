@@ -1,4 +1,11 @@
+import { createFnSpanner, narrowError } from "@/lib/telemetry/utils"
+import { type Span, SpanStatusCode } from "@opentelemetry/api"
 import { OpenAI } from "openai"
+import type {
+  ChatCompletionCreateParamsBase,
+  ChatCompletionTool,
+} from "openai/resources/chat/completions.mjs"
+import zodToJsonSchema from "zod-to-json-schema"
 import type {
   FunctionDefs,
   GenerateRequest,
@@ -6,13 +13,6 @@ import type {
   LLM,
   ModelType,
 } from "./core"
-import zodToJsonSchema from "zod-to-json-schema"
-import type {
-  ChatCompletionCreateParamsBase,
-  ChatCompletionTool,
-} from "openai/resources/chat/completions.mjs"
-import { SpanStatusCode, type Span } from "@opentelemetry/api"
-import { createFnSpanner, narrowError } from "@/lib/telemetry/utils"
 
 const fnSpan = createFnSpanner("openai-llm")
 
@@ -52,11 +52,11 @@ export class Gpt implements LLM {
       const messages = [
         ...(request.systemText
           ? [
-            {
-              role: "system" as const,
-              content: request.systemText,
-            },
-          ]
+              {
+                role: "system" as const,
+                content: request.systemText,
+              },
+            ]
           : []),
         ...request.messages.map((m) => ({
           role: m.role,
@@ -74,7 +74,10 @@ export class Gpt implements LLM {
         }),
       )
       if (span.isRecording()) {
-        span.setAttribute("functions", JSON.stringify(tools.map((t) => t.function)))
+        span.setAttribute(
+          "functions",
+          JSON.stringify(tools.map((t) => t.function)),
+        )
       }
 
       const result = await this.ai.chat.completions.create({
@@ -96,7 +99,7 @@ export class Gpt implements LLM {
       if (span.isRecording()) {
         span.addEvent("got text & tool_calls", {
           text: text ?? "null",
-          calls: JSON.stringify(calls?.map(c => c.function.name) ?? null)
+          calls: JSON.stringify(calls?.map((c) => c.function.name) ?? null),
         })
       }
 

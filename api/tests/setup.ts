@@ -1,32 +1,29 @@
-import { createDB } from "@/lib/db"
-import { createClient } from "@libsql/client"
-import { GenericContainer, Wait } from "testcontainers"
-import { migrate } from "drizzle-orm/sqlite-proxy/migrator"
-import { join, dirname } from "node:path"
+import { dirname, join } from "node:path"
 import { generateAll } from "@/cmd/generator/dummy"
-import { user } from "@/lib/schema/schema"
+import { createDB } from "@/lib/db"
 import { isomorphicLLMFromEnv } from "@/lib/llm/isomorphic"
-import { protectedRouter, t } from "../protected"
-import { LLMCache } from "@/lib/llm-cache/cache"
-import { initializeOtel } from "@/lib/telemetry/nodejs"
+import { question, stimulus, subject, unit, user } from "@/lib/schema/schema"
+import { initializeOtelVitest } from "@/lib/telemetry/vitest"
+import { createClient } from "@libsql/client"
 import type { Span } from "@opentelemetry/api"
-import { Mailgun } from "@/lib/mailgun"
+import { migrate } from "drizzle-orm/sqlite-proxy/migrator"
+import { GenericContainer, Wait } from "testcontainers"
+import { protectedRouter, t } from "../protected"
 
-initializeOtel("test:api")
+initializeOtelVitest("test:api")
 
-export async function setupDummyDB(span: Span) {
+export async function setupDummyDB(span: Span, email: string) {
   // setup sqld instance and client
   const sqld = await new GenericContainer("ghcr.io/libsql/sqld:latest")
     .withExposedPorts(8080)
     .withWaitStrategy(Wait.forLogMessage("listening for HTTP requests on"))
     .start()
 
+  // prepare db
   const libsql = createClient({
     url: `http://${sqld.getHost()}:${sqld.getFirstMappedPort()}`,
   })
   const db = createDB(libsql)
-
-  // migrate DB schema
   await migrate(
     db,
     (queries) => {
@@ -40,26 +37,35 @@ export async function setupDummyDB(span: Span) {
     },
   )
 
-  // setup dummy user account
-  const testEmail = "test.user@email.com"
-  await db.insert(user).values({
-    email: testEmail,
+  // insert dummy data
+  await db.insert(user).values({ email })
+  const dummyData = await generateAll(span, { db })
+
+  span.addEvent("db snapshot (1)", {
+    "custom.users": JSON.stringify(await db.select().from(user)),
+    "custom.subject": JSON.stringify(await db.select().from(subject)),
+    "custom.units": JSON.stringify(await db.select().from(unit)),
+    "custom.stimuli": JSON.stringify(await db.select().from(stimulus)),
+    "custom.questions": JSON.stringify(await db.select().from(question)),
   })
 
-  // setup openai client
-  const llm = isomorphicLLMFromEnv()
-
-  // setup generation context
-  const dummyData = await generateAll({ db, llm: new LLMCache({ llm }) })
-
   // setup local trpc API
+  const llm = isomorphicLLMFromEnv()
   const createApi = t.createCallerFactory(protectedRouter)
   const api = createApi({
-    userEmail: testEmail,
+    userEmail: email,
     db,
     llm,
     span,
   })
 
-  return { db, api, testEmail, ...dummyData }
+  span.addEvent("db snapshot (2)", {
+    "custom.users": JSON.stringify(await db.select().from(user)),
+    "custom.subject": JSON.stringify(await db.select().from(subject)),
+    "custom.units": JSON.stringify(await db.select().from(unit)),
+    "custom.stimuli": JSON.stringify(await db.select().from(stimulus)),
+    "custom.questions": JSON.stringify(await db.select().from(question)),
+  })
+
+  return { db, api, testEmail: email, ...dummyData }
 }

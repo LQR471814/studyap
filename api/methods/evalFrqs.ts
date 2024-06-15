@@ -3,10 +3,10 @@ import type { DB } from "@/lib/db"
 import type { LLM } from "@/lib/llm/core"
 import { frqAttempt, question, stimulus } from "@/lib/schema/schema"
 import { retryAsyncFn } from "@/lib/utils"
+import type { Span } from "@opentelemetry/api"
 import { and, eq, inArray, isNotNull } from "drizzle-orm"
 import { z } from "zod"
 import { fnSpan } from "../tracer"
-import type { Span } from "@opentelemetry/api"
 
 export async function evalFRQs(
   span: Span | undefined,
@@ -83,12 +83,13 @@ export async function evalFRQs(
 
 ${gradingGuidelines}
 
-${stimulus
-              ? `## Question stimulus / context
+${
+  stimulus
+    ? `## Question stimulus / context
 
 ${stimulus}`
-              : ""
-            }
+    : ""
+}
 
 ## Question
 
@@ -147,7 +148,9 @@ ${response}`
           .update(frqAttempt)
           .set({
             scoredPoints: scored.result.length,
-            scoringNotes: scored.result.map((s) => `- +1 pt. - ${s}`).join("\n"),
+            scoringNotes: scored.result
+              .map((s) => `- +1 pt. - ${s}`)
+              .join("\n"),
           })
           .where(eq(frqAttempt.questionId, r.questionId))
       }),

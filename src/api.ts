@@ -1,8 +1,8 @@
-import { createTRPCClient, httpBatchLink } from "@trpc/client"
 import type { ProtectedRouter } from "@/api/protected"
+import type { PublicRouter } from "@/api/public"
+import { createTRPCClient, httpBatchLink } from "@trpc/client"
 import superjson from "superjson"
 import { writable } from "svelte/store"
-import type { PublicRouter } from "@/api/public"
 
 export const publicApi = createTRPCClient<PublicRouter>({
   links: [

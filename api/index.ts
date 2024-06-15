@@ -1,4 +1,4 @@
-import { instrument, type ResolveConfigFn } from "@microlabs/otel-cf-workers"
+import { type ResolveConfigFn, instrument } from "@microlabs/otel-cf-workers"
 import type { Env } from "./main"
 import handler from "./main"
 

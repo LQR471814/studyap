@@ -1,6 +1,5 @@
 import type { DB } from "@/lib/db"
 import type { LLM } from "@/lib/llm/core"
-import type { Mailgun } from "@/lib/mailgun"
 import {
   frqAttempt,
   mcqAttempt,
@@ -185,4 +184,3 @@ export const protectedRouter = t.router({
 
 export type ProtectedRouter = typeof protectedRouter
 export type Test = Awaited<ReturnType<(typeof protectedRouter)["getTest"]>>
-

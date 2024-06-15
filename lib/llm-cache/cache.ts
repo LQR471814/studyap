@@ -1,33 +1,33 @@
-import { drizzle, type BetterSQLite3Database } from "drizzle-orm/better-sqlite3"
-import { migrate } from "drizzle-orm/better-sqlite3/migrator"
+import { createHash } from "node:crypto"
+import path from "node:path"
+import { fileURLToPath } from "node:url"
 import type {
   FunctionDefs,
   GenerateRequest,
   GenerateResult,
   LLM,
 } from "@/lib/llm/core"
-import * as schema from "./schema/schema"
-import * as rels from "./schema/schema.relations"
-import { eq } from "drizzle-orm"
-import Sqlite from "better-sqlite3"
-import path from "node:path"
-import PQueue from "p-queue"
+import { createFnSpanner, narrowError } from "@/lib/telemetry/utils"
 import {
   GoogleGenerativeAIFetchError,
   GoogleGenerativeAIResponseError,
 } from "@google/generative-ai"
+import { type Span, SpanStatusCode } from "@opentelemetry/api"
+import Sqlite from "better-sqlite3"
+import { eq } from "drizzle-orm"
+import { type BetterSQLite3Database, drizzle } from "drizzle-orm/better-sqlite3"
+import { migrate } from "drizzle-orm/better-sqlite3/migrator"
 import {
   APIConnectionError,
-  RateLimitError,
-  InternalServerError,
   APIConnectionTimeoutError,
   APIUserAbortError,
+  InternalServerError,
+  RateLimitError,
 } from "openai"
-import { type Span, SpanStatusCode } from "@opentelemetry/api"
-import { createFnSpanner, narrowError } from "@/lib/telemetry/utils"
-import { createHash } from "node:crypto"
+import PQueue from "p-queue"
 import zodToJsonSchema from "zod-to-json-schema"
-import { fileURLToPath } from "node:url"
+import * as schema from "./schema/schema"
+import * as rels from "./schema/schema.relations"
 
 const fnSpan = createFnSpanner("llm-cache")
 
@@ -65,24 +65,21 @@ export class LLMCache {
     this.queue =
       queue === undefined
         ? new PQueue({
-          concurrency: 3,
-          autoStart: true,
-          // 1 minute
-          interval: 10 * 1000,
-          intervalCap: 3,
-          carryoverConcurrencyCount: true,
-        })
+            concurrency: 3,
+            autoStart: true,
+            // 1 minute
+            interval: 10 * 1000,
+            intervalCap: 3,
+            carryoverConcurrencyCount: true,
+          })
         : queue
     this.db = drizzle(new Sqlite(cacheFile ?? "llm-cache.db"), {
       schema: { ...schema, ...rels },
     })
 
-    const __dirname = fileURLToPath(new URL('.', import.meta.url))
+    const __dirname = fileURLToPath(new URL(".", import.meta.url))
     migrate(this.db, {
-      migrationsFolder: path.join(
-        __dirname,
-        "drizzle",
-      ),
+      migrationsFolder: path.join(__dirname, "drizzle"),
     })
   }
 

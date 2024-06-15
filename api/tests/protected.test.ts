@@ -1,10 +1,20 @@
+import {
+  question,
+  stimulus,
+  subject as subjectRow,
+  unit,
+} from "@/lib/schema/schema"
+import type { Span } from "@opentelemetry/api"
+import { expect, test } from "vitest"
 import { fnSpan } from "../tracer"
 import { setupDummyDB } from "./setup"
-import { test, expect } from "vitest"
 
 test("createTest", () => {
-  return fnSpan(undefined, "createTest", async (span) => {
-    const { api, testEmail, subject, frqs, mcqs } = await setupDummyDB(span)
+  async function testUserCreateTest(span: Span, userEmail: string) {
+    const { api, testEmail, subject, frqs, mcqs } = await setupDummyDB(
+      span,
+      userEmail,
+    )
 
     try {
       await api.createTest({
@@ -60,12 +70,30 @@ test("createTest", () => {
       expect((err as Error).message).toContain("not enough")
     }
     await api.deleteTest(testAttemptId1)
+  }
+
+  return fnSpan(undefined, "test:createTest", (span) => {
+    return Promise.all([
+      testUserCreateTest(span, "alice@email.com"),
+      testUserCreateTest(span, "bob@email.com"),
+      testUserCreateTest(span, "sandy@email.com"),
+    ])
   })
 })
 
 test("getAvailableQuestions", () => {
-  return fnSpan(undefined, "getAvailableQuestions", async (span) => {
-    const { api, units, subject, frqs, mcqs } = await setupDummyDB(span)
+  return fnSpan(undefined, "test:getAvailableQuestions", async (span) => {
+    const { db, api, units, subject, frqs, mcqs } = await setupDummyDB(
+      span,
+      "getAvailableQuestions@email.com",
+    )
+
+    span.addEvent("db snapshot", {
+      "custom.subject": JSON.stringify(await db.select().from(subjectRow)),
+      "custom.units": JSON.stringify(await db.select().from(unit)),
+      "custom.stimuli": JSON.stringify(await db.select().from(stimulus)),
+      "custom.questions": JSON.stringify(await db.select().from(question)),
+    })
 
     const happyPath = await api.getAvailableQuestions({
       subjectId: subject.id,

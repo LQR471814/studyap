@@ -1,3 +1,4 @@
+import { fnSpan } from "@/api/tracer"
 import type { DB } from "@/lib/db"
 import {
   frqAttempt,
@@ -7,10 +8,9 @@ import {
   testAttempt,
   testStimulus,
 } from "@/lib/schema/schema"
+import type { Span } from "@opentelemetry/api"
 import { and, eq, inArray, isNull } from "drizzle-orm"
 import { z } from "zod"
-import { fnSpan } from "@/api/tracer"
-import type { Span } from "@opentelemetry/api"
 
 export const createTestOptions = z.object({
   subject: z.number(),
@@ -28,6 +28,7 @@ export async function createTest(
 ) {
   return fnSpan(span, "createTest", async (span) => {
     if (span.isRecording()) {
+      span.setAttribute("userEmail", userEmail)
       span.setAttribute("subject", options.subject)
       span.setAttribute("mcqCount", options.mcqCount)
       span.setAttribute("frqCount", options.frqCount)

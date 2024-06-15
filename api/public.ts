@@ -30,4 +30,3 @@ export const publicRouter = t.router({
 })
 
 export type PublicRouter = typeof publicRouter
-

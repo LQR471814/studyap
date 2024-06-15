@@ -1,9 +1,9 @@
 import {
-  sqliteTable,
-  int,
-  text,
-  primaryKey,
   foreignKey,
+  int,
+  primaryKey,
+  sqliteTable,
+  text,
 } from "drizzle-orm/sqlite-core"
 
 const CASCADE = {
@@ -11,15 +11,12 @@ const CASCADE = {
   onUpdate: "cascade",
 } as const
 
-export const pendingVerification = sqliteTable(
-  "pendingVerification",
-  {
-    code: text("code").notNull().primaryKey(),
-    token: text("token").notNull().unique(),
-    email: text("email").notNull(),
-    expiresAt: int("expiresAt", { mode: "timestamp" }).notNull(),
-  },
-)
+export const pendingVerification = sqliteTable("pendingVerification", {
+  code: text("code").notNull().primaryKey(),
+  token: text("token").notNull().unique(),
+  email: text("email").notNull(),
+  expiresAt: int("expiresAt", { mode: "timestamp" }).notNull(),
+})
 
 export const activeToken = sqliteTable(
   "activeToken",

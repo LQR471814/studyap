@@ -58,12 +58,8 @@
           "name": "completionFunctionCall_completionId_completion_id_fk",
           "tableFrom": "completionFunctionCall",
           "tableTo": "completion",
-          "columnsFrom": [
-            "completionId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["completionId"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "cascade"
         }

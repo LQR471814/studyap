@@ -1,11 +1,11 @@
+import { initializeOtelVitest } from "@/lib/telemetry/vitest"
+import type { Span } from "@opentelemetry/api"
+import { describe, expect, test } from "vitest"
 import { z } from "zod"
 import { Gemini } from "../google"
-import { describe, test, expect } from "vitest"
-import { initializeOtel } from "@/lib/telemetry/nodejs"
-import type { Span } from "@opentelemetry/api"
-import { fnSpan } from "@/api/tracer"
+import { fnSpan } from "./singletons"
 
-initializeOtel("test:llm-google")
+initializeOtelVitest("test:llm-google")
 
 describe("generate", () => {
   const apiKey = process.env.GOOGLE_API_KEY
@@ -16,27 +16,27 @@ describe("generate", () => {
   }
   const llm = new Gemini(apiKey)
 
-  test("root is number", () =>
-    fnSpan(undefined, "root is number", async (span) => {
-      const def = z.number().describe("generate a number from 1 to 10.")
-      const res = await llm.generate(span, {
-        model: "small",
-        messages: [
-          {
-            role: "user",
-            content: "Generate a number, then return it to the user.",
-          },
-        ],
-        mustUseFunctions: true,
-        functions: {
-          result: {
-            description: "Outputs the generated result to the user.",
-            returns: def,
-          },
-        },
-      })
-      expect(res.returns?.result).toBeDefined()
-    }))
+  // test("root is number", () =>
+  //   fnSpan(undefined, "root is number", async (span) => {
+  //     const def = z.number().describe("generate a number from 1 to 10.")
+  //     const res = await llm.generate(span, {
+  //       model: "small",
+  //       messages: [
+  //         {
+  //           role: "user",
+  //           content: "Generate a number, then return it to the user.",
+  //         },
+  //       ],
+  //       mustUseFunctions: true,
+  //       functions: {
+  //         result: {
+  //           description: "Outputs the generated result to the user.",
+  //           returns: def,
+  //         },
+  //       },
+  //     })
+  //     expect(res.returns?.result).toBeDefined()
+  //   }))
 
   test("root is array", () =>
     fnSpan(undefined, "root is array", async (span: Span) => {

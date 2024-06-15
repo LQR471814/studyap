@@ -39,7 +39,8 @@ export const config: Config = {
     systemText:
       "You are a high school history teacher employed by the collegeboard to create free response questions for the AP US History exam.",
     descriptions: {
-      question: "The plain text question content of the free response question. This should draw on EXTERNAL KNOWLEDGE about history (facts, figures, events from the time period, or other time periods). It should NOT COME SOLELY from the stimulus."
+      question:
+        "The plain text question content of the free response question. This should draw on EXTERNAL KNOWLEDGE about history (facts, figures, events from the time period, or other time periods). It should NOT COME SOLELY from the stimulus.",
     },
     questionsPerStimulus: 4,
   },

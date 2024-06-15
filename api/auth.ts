@@ -1,7 +1,7 @@
 import type { DB } from "@/lib/db"
 import type { Mailgun } from "@/lib/mailgun"
 import { activeToken, pendingVerification, user } from "@/lib/schema/schema"
-import { SpanStatusCode, type Span } from "@opentelemetry/api"
+import { type Span, SpanStatusCode } from "@opentelemetry/api"
 import { eq, lt } from "drizzle-orm"
 import { fnSpan } from "./tracer"
 

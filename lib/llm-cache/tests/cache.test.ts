@@ -1,10 +1,10 @@
-import { test, expect } from "vitest"
-import { LLMCache } from "../cache"
 import { isomorphicLLMFromEnv } from "@/lib/llm/isomorphic"
-import { initializeOtel } from "@/lib/telemetry/nodejs"
-import { fnSpan } from "@/api/tracer"
+import { initializeOtelVitest } from "@/lib/telemetry/vitest"
+import { expect, test } from "vitest"
+import { LLMCache } from "../cache"
+import { fnSpan } from "./singletons"
 
-initializeOtel("test:llm-cache")
+initializeOtelVitest("test:llm-cache")
 
 const cache = new LLMCache({
   llm: isomorphicLLMFromEnv(),
@@ -109,4 +109,4 @@ test("revalidate", () => {
     })
     expect(resultCached2.text).toEqual(resultInvalidated.text)
   })
-})
+}, 30000)

@@ -1,12 +1,12 @@
 import { createDB } from "@/lib/db"
-import { protectedRouter } from "./protected"
-import { fetchRequestHandler } from "@trpc/server/adapters/fetch"
-import { createClient } from "@libsql/client"
 import { isomorphicLLM } from "@/lib/llm/isomorphic"
-import { trace } from "@opentelemetry/api"
 import { Mailgun } from "@/lib/mailgun"
-import { publicRouter } from "./public"
+import { createClient } from "@libsql/client"
+import { trace } from "@opentelemetry/api"
+import { fetchRequestHandler } from "@trpc/server/adapters/fetch"
 import { verifyToken } from "./auth"
+import { protectedRouter } from "./protected"
+import { publicRouter } from "./public"
 
 const CORS_HEADERS: Record<string, string> = {
   "Access-Control-Allow-Origin": "*",

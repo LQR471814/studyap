@@ -21,27 +21,51 @@ export function retryAsyncFn<I extends unknown[], O>(
   }
 }
 
+const UNSET = Symbol("unset")
+
 /**
  * Creates a function that will only run once, then cache it's result for every
  * next call (similar to an esm module).
  */
 export function memo<A extends unknown[], R>(
   fn: (...args: A) => R,
+  changeOnArgs?: Record<number, boolean>,
 ): (...args: A) => R {
-  let memoized: R | undefined
+  let lastArgs: A | undefined
+  let memoized: R | symbol = UNSET
+
   return (...args: A): R => {
-    if (memoized) {
+    if (memoized === UNSET || !lastArgs || lastArgs.length !== args.length) {
+      lastArgs = args
+
+      memoized = fn(...args)
       return memoized
     }
-    memoized = fn(...args)
-    return memoized
+
+    for (let i = 0; i < lastArgs!.length; i++) {
+      if (!changeOnArgs?.[i]) {
+        continue
+      }
+      if (lastArgs![i] !== args[i]) {
+        lastArgs = args
+
+        memoized = fn(...args)
+        return memoized
+      }
+    }
+
+    return memoized as R
   }
 }
 
 /**
  * Grabs a random subset of elements from the list.
  */
-export function grabRandom<T>(randomThunk: () => number, list: T[], count: number): T[] {
+export function grabRandom<T>(
+  randomThunk: () => number,
+  list: T[],
+  count: number,
+): T[] {
   if (count > list.length) {
     throw new Error("You cannot grab more than the size of the list!")
   }
@@ -60,4 +84,3 @@ export function grabRandom<T>(randomThunk: () => number, list: T[], count: numbe
 
   return result
 }
-

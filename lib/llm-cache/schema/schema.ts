@@ -21,4 +21,3 @@ export const completionFunctionCall = sqliteTable("completionFunctionCall", {
    */
   result: text("result").notNull(),
 })
-

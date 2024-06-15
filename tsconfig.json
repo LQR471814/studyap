@@ -10,9 +10,7 @@
     "module": "esnext",
     "moduleResolution": "bundler",
     "incremental": true,
-    "types": [
-      "@cloudflare/workers-types/2023-07-01"
-    ],
+    "types": ["@cloudflare/workers-types/2023-07-01"],
     "paths": {
       "@/*": ["./*"],
       "@ui-lib": ["./src/lib"],

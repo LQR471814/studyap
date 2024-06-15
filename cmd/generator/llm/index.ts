@@ -1,12 +1,12 @@
-import { drizzle } from "drizzle-orm/libsql"
-import { LLMGenerator } from "./generator"
-import { createClient } from "@libsql/client"
 import { LLMCache } from "@/lib/llm-cache/cache"
 import { isomorphicLLMFromEnv } from "@/lib/llm/isomorphic"
 import * as schema from "@/lib/schema/schema"
 import * as rels from "@/lib/schema/schema.relations"
-import type { Config } from "./config"
+import { createClient } from "@libsql/client"
 import type { Span } from "@opentelemetry/api"
+import { drizzle } from "drizzle-orm/libsql"
+import type { Config } from "./config"
+import { LLMGenerator } from "./generator"
 
 export async function generate(span: Span | undefined, config: Config) {
   const db = drizzle(
@@ -21,12 +21,14 @@ export async function generate(span: Span | undefined, config: Config) {
 
   const res = await generator.generate(span)
 
-  return [`----- GENERATION SUMMARY -----
+  return [
+    `----- GENERATION SUMMARY -----
 SUBJECT: ${res.subject.name}
 UNITS: ${res.units.length}
 STIMULI (MCQ): ${res.stimuli.mcqs.length}
 STIMULI (FRQ): ${res.stimuli.frqs.length}
 MCQ: ${res.mcqs.length}
-FRQ: ${res.frqs.length}`, res] as const
+FRQ: ${res.frqs.length}`,
+    res,
+  ] as const
 }
-

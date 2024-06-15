@@ -7,7 +7,7 @@ export default defineConfig({
   driver: "turso",
   dbCredentials: {
     url: process.env.DATABASE_URL ?? "http://127.0.0.1:8080",
-    authToken: process.env.DATABASE_AUTH_TOKEN
+    authToken: process.env.DATABASE_AUTH_TOKEN,
   },
   verbose: true,
   strict: true,

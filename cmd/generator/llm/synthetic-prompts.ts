@@ -49,7 +49,11 @@ ${stimulus}`
    * Natural language instructions telling the assistant to proceed with the same instruction
    * but generate a different stimulus.
    */
-  export function continuation(subject: string, units: string[], answerCount: number): string {
+  export function continuation(
+    subject: string,
+    units: string[],
+    answerCount: number,
+  ): string {
     return `Great! Now generate another non-obvious one still pertaining to the ${subject} units ${inlineUnitList(units)} and the aforementioned stimulus (if available). It should have exactly ${answerCount} answer(s).`
   }
 }

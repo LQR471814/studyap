@@ -1,3 +1,4 @@
+import type { DB } from "@/lib/db"
 import {
   frqAttempt,
   mcqAttempt,
@@ -6,7 +7,6 @@ import {
   testAttempt,
 } from "@/lib/schema/schema"
 import { and, eq, sql } from "drizzle-orm"
-import type { DB } from "@/lib/db"
 
 export async function listCompleteTests(db: DB, userEmail: string) {
   const mcqQuestions = db

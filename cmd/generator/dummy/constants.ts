@@ -1,48 +1,69 @@
-import { subject, unit } from "@/lib/schema/schema"
-import { memo } from "@/lib/utils"
 import type { DB } from "@/lib/db"
-import type { LLMCache } from "@/lib/llm-cache/cache"
+import { subject, unit } from "@/lib/schema/schema"
+import { createFnSpanner } from "@/lib/telemetry/utils"
+import { memo } from "@/lib/utils"
+import type { Span } from "@opentelemetry/api"
+
+export const fnSpan = createFnSpanner("dummy")
 
 export type Context = {
-  llm: LLMCache
   db: DB
 }
 
 export const VERSION = 1
 
-export const generateSubject = memo(async (ctx: Context) => {
-  const [SUBJECT] = await ctx.db
-    .insert(subject)
-    .values({
-      name: "AP US History",
-      version: VERSION,
+export const subjects = memo(
+  async (span: Span | undefined, ctx: Context) => {
+    return fnSpan(span, "subjects", async (span) => {
+      const [subjectRow] = await ctx.db
+        .insert(subject)
+        .values({
+          name: "AP US History",
+          version: VERSION,
+        })
+        .returning()
+
+      span.addEvent("insert subject", {
+        "custom.result": JSON.stringify(subjectRow),
+      })
+
+      return subjectRow
     })
-    .returning()
+  },
+  { 1: true },
+)
 
-  return SUBJECT
-})
+export const units = memo(
+  async (span: Span | undefined, ctx: Context) => {
+    return fnSpan(span, "units", async (span) => {
+      const subjectRow = await subjects(span, ctx)
+      const result = await ctx.db
+        .insert(unit)
+        .values(
+          [
+            "Period 1: 1491-1607",
+            "Period 2: 1607-1754",
+            "Period 3: 1754-1800",
+            "Period 4: 1800-1848",
+            "Period 5: 1844-1877",
+            "Period 6: 1865-1898",
+            "Period 7: 1890-1945",
+            "Period 8: 1945-1980",
+            "Period 9: 1980-Present",
+          ].map((u) => ({
+            name: u,
+            subjectId: subjectRow.id,
+            version: VERSION,
+          })),
+        )
+        .returning()
 
-export const generateUnits = memo(async (ctx: Context) => {
-  const SUBJECT = await generateSubject(ctx)
+      span.addEvent("create unit rows", {
+        "custom.result": JSON.stringify(result),
+      })
 
-  return ctx.db
-    .insert(unit)
-    .values(
-      [
-        "Period 1: 1491-1607",
-        "Period 2: 1607-1754",
-        "Period 3: 1754-1800",
-        "Period 4: 1800-1848",
-        "Period 5: 1844-1877",
-        "Period 6: 1865-1898",
-        "Period 7: 1890-1945",
-        "Period 8: 1945-1980",
-        "Period 9: 1980-Present",
-      ].map((u) => ({
-        name: u,
-        subjectId: SUBJECT.id,
-        version: VERSION,
-      })),
-    )
-    .returning()
-})
+      return result
+    })
+  },
+  { 1: true },
+)

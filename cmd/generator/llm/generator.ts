@@ -1,7 +1,12 @@
-import type { LLMCache } from "@/lib/llm-cache/cache"
-import type { Config } from "./config"
+import { fnSpan } from "@/api/tracer"
 import type { DB } from "@/lib/db"
-import { grabRandom, memo } from "@/lib/utils"
+import type { LLMCache } from "@/lib/llm-cache/cache"
+import type {
+  FunctionDefs,
+  GenerateRequest,
+  GenerateResult,
+  Message,
+} from "@/lib/llm/core"
 import {
   question,
   questionChoice,
@@ -10,18 +15,13 @@ import {
   subject,
   unit,
 } from "@/lib/schema/schema"
+import { grabRandom, memo } from "@/lib/utils"
+import { type Span, SpanStatusCode } from "@opentelemetry/api"
 import { eq } from "drizzle-orm"
-import { z } from "zod"
-import type {
-  FunctionDefs,
-  GenerateRequest,
-  GenerateResult,
-  Message,
-} from "@/lib/llm/core"
-import { FrqPrompts, McqPrompts, StimulusPrompts } from "./synthetic-prompts"
 import seedrandom from "seedrandom"
-import { SpanStatusCode, type Span } from "@opentelemetry/api"
-import { fnSpan } from "@/api/tracer"
+import { z } from "zod"
+import type { Config } from "./config"
+import { FrqPrompts, McqPrompts, StimulusPrompts } from "./synthetic-prompts"
 
 async function retryLLMCache<F extends FunctionDefs, R>(
   span: Span | undefined,
@@ -365,14 +365,24 @@ export class LLMGenerator {
           .string()
           .describe(
             this.config.mcqs.descriptions.question ??
-            "The plain text question content of the multiple choice question.",
+              "The plain text question content of the multiple choice question.",
           ),
-        choiceA: answerChoice.describe("Answer choice A, this should be an object."),
-        choiceB: answerChoice.describe("Answer choice B, this should be an object."),
-        choiceC: answerChoice.describe("Answer choice C, this should be an object."),
-        choiceD: answerChoice.describe("Answer choice D, this should be an object."),
+        choiceA: answerChoice.describe(
+          "Answer choice A, this should be an object.",
+        ),
+        choiceB: answerChoice.describe(
+          "Answer choice B, this should be an object.",
+        ),
+        choiceC: answerChoice.describe(
+          "Answer choice C, this should be an object.",
+        ),
+        choiceD: answerChoice.describe(
+          "Answer choice D, this should be an object.",
+        ),
         choiceE: answerChoice
-          .describe("Answer choice E, if necessary, this should be an object if defined.")
+          .describe(
+            "Answer choice E, if necessary, this should be an object if defined.",
+          )
           .nullish(),
       })
 
@@ -602,19 +612,19 @@ export class LLMGenerator {
           .string()
           .describe(
             this.config.frqs.descriptions.question ??
-            "The plain text question content of the free response question.",
+              "The plain text question content of the free response question.",
           ),
         guidelines: z
           .string()
           .describe(
             this.config.frqs.descriptions.guidelines ??
-            "Grading guidelines to be given to a grader on how they should score an arbitrary student response to the question.",
+              "Grading guidelines to be given to a grader on how they should score an arbitrary student response to the question.",
           ),
         totalPoints: z
           .number()
           .describe(
             this.config.frqs.descriptions.totalPoints ??
-            "The total amount of points a student can earn on this question, as specified by the 'guidelines' key.",
+              "The total amount of points a student can earn on this question, as specified by the 'guidelines' key.",
           ),
       })
 

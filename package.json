@@ -13,7 +13,7 @@
     "preview": "vite preview",
     "lint:tsc": "tsc --noEmit",
     "lint:svelte": "svelte-check --tsconfig ./tsconfig.json",
-    "lint:biome": "biome lint --write --unsafe .",
+    "lint:biome": "biome check --write --unsafe .",
     "lint:pkgs": "syncpack set-semver-ranges && syncpack fix-mismatches",
     "lint": "pnpm lint:tsc && pnpm lint:svelte && pnpm lint:biome",
     "test": "dotenv -e .dev.vars -- vitest run",

@@ -1,9 +1,11 @@
 import { retryAsyncFn } from "@/lib/utils"
-import { test, expect } from "vitest"
+import { expect, test } from "vitest"
 
 test("retryAsyncFn", async () => {
   {
-    const res = await retryAsyncFn("no-retry", 3, async () => { return true })()
+    const res = await retryAsyncFn("no-retry", 3, async () => {
+      return true
+    })()
     expect(res).toBe(true)
   }
   {
@@ -23,4 +25,3 @@ test("retryAsyncFn", async () => {
     expect(res).rejects.toThrow(/fail failed 5 times in a row/)
   }
 })
-
