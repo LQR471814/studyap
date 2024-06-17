@@ -5,6 +5,7 @@
   import { getContext } from "svelte";
   import { type Context, contextSymbol } from "./context";
   import { twMerge } from "tailwind-merge";
+  import { heuristicUnescape } from "@/lib/utils";
 
   const ctx = getContext<Context>(contextSymbol);
 
@@ -63,13 +64,15 @@
     >
   {/if}
 </h2>
-{#if stimulus}
+{#if stimulus.content}
   <p>
-    {stimulus.content}
+    {heuristicUnescape(stimulus.content)}
   </p>
-  <p class="italic">
-    — {stimulus.attribution}
-  </p>
+  {#if stimulus.attribution}
+    <p class="italic">
+      — {heuristicUnescape(stimulus.attribution)}
+    </p>
+  {/if}
 {/if}
 {#if style === "mcq"}
   {#each group.mcqAttempt as mcq}

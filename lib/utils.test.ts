@@ -1,4 +1,4 @@
-import { retryAsyncFn } from "@/lib/utils"
+import { heuristicUnescape, retryAsyncFn } from "@/lib/utils"
 import { expect, test } from "vitest"
 
 test("retryAsyncFn", async () => {
@@ -25,3 +25,29 @@ test("retryAsyncFn", async () => {
     expect(res).rejects.toThrow(/fail failed 5 times in a row/)
   }
 })
+
+test("heuristicUnescape", () => {
+  const testTable: {
+    test: string
+    expect: string
+  }[] = [
+    {
+      test: `\\"we are a family of four\\"`,
+      expect: `"we are a family of four"`
+    },
+    {
+      test: "FIND_BIN=\\$(which find)",
+      expect: "FIND_BIN=$(which find)",
+    },
+    {
+      test: "nothing happens",
+      expect: "nothing happens",
+    }
+  ]
+
+  for (const testCase of testTable) {
+    const result = heuristicUnescape(testCase.test)
+    expect(result).toBe(testCase.expect)
+  }
+})
+

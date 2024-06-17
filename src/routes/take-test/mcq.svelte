@@ -7,6 +7,7 @@
   import { twMerge } from "tailwind-merge";
   import { type Context, contextSymbol } from "./context";
   import Question from "./question.svelte";
+  import { heuristicUnescape } from "@/lib/utils";
 
   const ctx = getContext<Context>(contextSymbol);
 
@@ -64,7 +65,7 @@
       />
 
       <Label class="w-full hover:cursor-pointer py-1" for={uniqueId}>
-        {choice.choice}
+        {heuristicUnescape(choice.choice)}
       </Label>
 
       {#if ctx.withCorrections && choice.id === selected}
