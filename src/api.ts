@@ -20,6 +20,20 @@ export let protectedApi = createTRPCClient<ProtectedRouter>({
   links: [],
 })
 
+if (import.meta.env.DEV) {
+  protectedApi = createTRPCClient<ProtectedRouter>({
+    links: [
+      httpBatchLink({
+        url: "http://127.0.0.1:8787/protected",
+        transformer: superjson,
+        headers: {
+          Authorization: "Bearer placeholder_token",
+        }
+      })
+    ]
+  })
+}
+
 export const token = writable<string | undefined>(
   localStorage.getItem("token") ?? undefined,
 )

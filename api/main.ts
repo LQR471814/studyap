@@ -7,6 +7,7 @@ import { fetchRequestHandler } from "@trpc/server/adapters/fetch"
 import { verifyToken } from "./auth"
 import { protectedRouter } from "./protected"
 import { publicRouter } from "./public"
+import { user } from "@/lib/schema/schema"
 
 const CORS_HEADERS: Record<string, string> = {
   "Access-Control-Allow-Origin": "*",
@@ -15,6 +16,8 @@ const CORS_HEADERS: Record<string, string> = {
 }
 
 export type Env = {
+  WORKER_ENV: "production" | "development"
+
   OPENAI_API_KEY?: string
   GOOGLE_API_KEY?: string
 
@@ -61,7 +64,14 @@ export default {
       }
 
       const db = database(env)
-      const userEmail = await verifyToken(span, db, token)
+
+      let userEmail: string | undefined
+      if (env.WORKER_ENV === "development") {
+        userEmail = "test.user@email.com"
+        await db.insert(user).values({ email: userEmail }).onConflictDoNothing()
+      } else {
+        userEmail = await verifyToken(span, db, token)
+      }
       if (!userEmail) {
         return new Response("Unauthorized.", { status: 401 })
       }

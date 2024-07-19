@@ -20,7 +20,7 @@ if (!(get(location) in routes) && !$token) {
 </script>
 
 <QueryClientProvider client={queryClient}>
-  {#if $token}
+  {#if $token || import.meta.env.DEV}
     <Dashboard />
   {:else}
     <Router {routes} />
