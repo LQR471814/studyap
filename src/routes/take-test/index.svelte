@@ -8,9 +8,9 @@
   import IconButton from "@ui-lib/components/custom/icon-button.svelte";
   import { setContext } from "svelte";
   import { writable } from "svelte/store";
-  import { contextSymbol } from "./context";
+  import { type Context, contextSymbol } from "./context";
 
-  export let corrections: boolean;
+  export let corrections = false;
 
   let optionsExpanded = false;
   let instantFeedback = false;
@@ -20,7 +20,8 @@
 
   const ctx = writable({
     withCorrections: corrections,
-  });
+    fromTestHistory: corrections,
+  }) satisfies Context;
 
   setContext(contextSymbol, ctx);
 
@@ -28,7 +29,10 @@
     if (corrections) {
       break $;
     }
-    $ctx = { withCorrections: instantFeedback };
+    $ctx = {
+      withCorrections: instantFeedback,
+      fromTestHistory: false,
+    };
   }
 </script>
 
