@@ -7,6 +7,7 @@
   import { Checkbox } from "@ui-lib/components/ui/checkbox";
   import IconButton from "@ui-lib/components/custom/icon-button.svelte";
   import { setContext } from "svelte";
+  import { writable } from "svelte/store";
   import { contextSymbol } from "./context";
 
   export let corrections: boolean;
@@ -17,9 +18,18 @@
 
   $: testAttemptId = $params?.test_id ? Number($params.test_id) : undefined;
 
-  setContext(contextSymbol, {
+  const ctx = writable({
     withCorrections: corrections,
   });
+
+  setContext(contextSymbol, ctx);
+
+  $: {
+    if (corrections) {
+      break $;
+    }
+    $ctx = { withCorrections: instantFeedback };
+  }
 </script>
 
 {#if testAttemptId !== undefined}
@@ -32,10 +42,13 @@
 
 <div class="fixed bottom-8 right-8 flex gap-3">
   {#if optionsExpanded}
-    <div class="flex gap-2 items-center" transition:fly={{ y: 10 }}>
-      <Checkbox bind:checked={instantFeedback} />
-      <p>Instant feedback</p>
-    </div>
+    {#if !corrections}
+      <div class="flex gap-2 items-center" transition:fly={{ y: 10 }}>
+        <Checkbox bind:checked={instantFeedback} />
+        <p>Instant feedback</p>
+      </div>
+    {/if}
+
     <div class="flex gap-2 items-center" transition:fly={{ y: 10 }}>
       <Checkbox bind:checked={scrollingLayout} />
       <p>Scrolling layout</p>

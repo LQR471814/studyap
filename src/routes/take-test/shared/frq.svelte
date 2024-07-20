@@ -7,6 +7,8 @@
   import { type Context, contextSymbol } from "../context";
   import SvelteMarkdown from "svelte-markdown";
   import { writable } from "@macfja/svelte-persistent-store";
+  import { Button } from "@ui-lib/components/ui/button";
+  import { createMutation } from "@tanstack/svelte-query";
 
   const ctx = getContext<Context>(contextSymbol);
 
@@ -22,6 +24,15 @@
 
   const value = writable(`frq:${testAttemptId}.${questionId}`, response);
 
+  $: regrade = createMutation({
+    mutationKey: ["evalSingleFRQ", testAttemptId, questionId],
+    mutationFn: () =>
+      protectedApi.evalSingleFRQ.mutate({
+        testId: testAttemptId,
+        questionId,
+      }),
+  });
+
   const save = pDebounce(async (response: string) => {
     await protectedApi.fillFRQs.mutate([
       {
@@ -31,8 +42,7 @@
       },
     ]);
   }, 1000);
-
-  $: save(response);
+  $: save($value);
 </script>
 
 <Question {question} {questionNumber} />
@@ -47,7 +57,8 @@
     $value = e.currentTarget.value;
   }}
 />
-{#if ctx.withCorrections}
+
+{#if $ctx.withCorrections && response}
   <div class="glass-panel text-sm">
     {#if explanation}
       <p
@@ -64,4 +75,25 @@
       <p>No explanation for scoring provided...</p>
     {/if}
   </div>
+{/if}
+
+{#if $ctx.withCorrections}
+  <Button
+    class="flex gap-2 w-fit"
+    disabled={$regrade.isPending}
+    on:click={() => {
+      if ($regrade.isPending) {
+        return;
+      }
+      $regrade.mutate();
+    }}
+  >
+    {#if $regrade.isPending}
+      Grading in progress...
+    {:else if $regrade.isError}
+      Error: {$regrade.error.message}
+    {:else}
+      Re-grade
+    {/if}
+  </Button>
 {/if}

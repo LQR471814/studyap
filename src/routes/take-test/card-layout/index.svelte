@@ -11,6 +11,7 @@
   import { type Context, contextSymbol } from "../context";
   import { createQuery } from "@tanstack/svelte-query";
   import Group from "./group.svelte";
+  import TestHeader from "../shared/test-header.svelte"
 
   const ctx = getContext<Context>(contextSymbol);
 
@@ -119,7 +120,7 @@
 </script>
 
 <div class="flex flex-col gap-3 p-5" in:fly={{ y: 10 }}>
-  <h1 class="text-2xl font-black">{$testName.data ?? "UNKNOWN"}</h1>
+  <TestHeader testName={$testName.data ?? ""} />
 
   {#if questionUnion && $lastQuestionNumber.data !== undefined}
     <Group
@@ -158,13 +159,11 @@
       {#if submitting}
         <p class="italic text-sm">This may take some time</p>
       {/if}
-      <Button class="w-fit" disabled={submitting} on:click={submit}>
-        {#if ctx.withCorrections}
-          Resubmit Test
-        {:else}
+      {#if !$ctx.withCorrections}
+        <Button class="w-fit" disabled={submitting} on:click={submit}>
           Submit Test
-        {/if}
-      </Button>
+        </Button>
+      {/if}
     {/if}
   </div>
 </div>

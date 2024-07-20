@@ -2,7 +2,7 @@ import type { DB } from "@/lib/db"
 import { mcqAttempt, questionChoice } from "@/lib/schema/schema"
 import { and, eq, inArray, isNotNull, or } from "drizzle-orm"
 
-export async function evalMCQs(db: DB, questionIds: number[]) {
+export async function evalMCQs(db: DB, testId: number, questionIds: number[]) {
   if (questionIds.length === 0) {
     return
   }
@@ -16,6 +16,7 @@ export async function evalMCQs(db: DB, questionIds: number[]) {
       .from(mcqAttempt)
       .where(
         and(
+          eq(mcqAttempt.testId, testId),
           inArray(mcqAttempt.questionId, questionIds),
           isNotNull(mcqAttempt.response),
         ),

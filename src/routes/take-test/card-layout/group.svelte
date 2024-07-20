@@ -19,7 +19,7 @@
 
 {#if $group.data}
   <h2 class="text-xl font-semibold">
-    Questions {$group.data.minNo} - {$group.data.maxNo} of {lastQuestionNumber}
+    Questions {$group.data.minNo} - {$group.data.maxNo} of total {lastQuestionNumber} questions
   </h2>
   <div>
     <Stimulus stimulus={$group.data.group.stimulus} />

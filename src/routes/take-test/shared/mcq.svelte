@@ -28,8 +28,8 @@
 
   const dispatcher = createEventDispatcher<{ select: number }>();
 
-  $: postChoice = pdebounce(() => {
-    if (!$value) {
+  const postChoice = pdebounce((response: number | null) => {
+    if (response === null) {
       return;
     }
     protectedApi.fillMCQs.mutate({
@@ -37,11 +37,12 @@
       questions: [
         {
           questionId: questionId,
-          questionChoiceId: $value,
+          questionChoiceId: response,
         },
       ],
     });
   }, 1000);
+  $: postChoice($value)
 </script>
 
 <Question {question} {questionNumber} />
@@ -49,10 +50,11 @@
 <RadioGroup.Root class="py-2 gap-0" value={$value?.toString()}>
   {#each questionChoices as choice}
     {@const uniqueId = choice.id.toString()}
+
     <div
       class={twMerge(
         "flex items-center gap-2 pl-4",
-        ctx.withCorrections
+        $ctx.withCorrections
           ? choice.id === $value
             ? choice.correct
               ? "text-green-700"
@@ -68,7 +70,6 @@
         on:click={() => {
           $value = choice.id;
           dispatcher("select", choice.id);
-          postChoice();
         }}
       />
 
@@ -76,7 +77,7 @@
         {heuristicUnescape(choice.choice)}
       </Label>
 
-      {#if ctx.withCorrections && choice.id === $value}
+      {#if $ctx.withCorrections && choice.id === $value}
         {#if choice.correct}
           <p class="text-green-700">✓</p>
         {:else}
@@ -85,7 +86,7 @@
       {/if}
     </div>
 
-    {#if ctx.withCorrections && choice.explanation}
+    {#if $ctx.withCorrections && choice.explanation && $value !== null}
       <p
         class={twMerge(
           choice.correct ? "text-green-700" : "text-red-700",

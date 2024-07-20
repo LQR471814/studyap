@@ -23,12 +23,14 @@ export async function evalTest(
 
   await evalMCQs(
     db,
+    testId,
     mcqQuestionIds.map((r) => r.questionId),
   )
   await evalFRQs(
     span,
     db,
     llm,
+    testId,
     frqQuestionIds.map((r) => r.questionId),
   )
 

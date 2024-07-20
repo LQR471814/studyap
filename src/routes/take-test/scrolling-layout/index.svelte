@@ -7,7 +7,7 @@
   import { createQuery } from "@tanstack/svelte-query";
   import { getContext } from "svelte";
   import { type Context, contextSymbol } from "../context";
-  import LeftIcon from "~icons/ri/arrow-left-s-line";
+  import TestHeader from "../shared/test-header.svelte";
 
   export let testAttemptId: number;
 
@@ -39,18 +39,7 @@
 
 {#if $test.data}
   <div class="flex flex-col gap-3 p-5" in:fly={{ y: 10 }}>
-    <div class="flex gap-3">
-      {#if ctx.withCorrections}
-        <button
-          class="size-8 border-2 border-transparent hover:border-gray-900 transition-all flex rounded-lg"
-          on:click={() => push("/test_history")}
-        >
-          <LeftIcon class="size-7 m-auto" />
-        </button>
-      {/if}
-
-      <h1 class="text-2xl font-black">{$test.data.subject.name}</h1>
-    </div>
+    <TestHeader testName={$test.data.subject.name} />
 
     {#each $test.data.testStimulus as group}
       <Group {group} />
@@ -59,13 +48,11 @@
     {#if submitting}
       <p class="italic text-sm">This may take some time</p>
     {/if}
-    <Button class="w-fit" disabled={submitting} on:click={submit}>
-      {#if ctx.withCorrections}
-        Resubmit Test
-      {:else}
+    {#if !$ctx.withCorrections}
+      <Button class="w-fit" disabled={submitting} on:click={submit}>
         Submit Test
-      {/if}
-    </Button>
+      </Button>
+    {/if}
   </div>
 {:else if $test.isError}
   <div class="flex h-full">

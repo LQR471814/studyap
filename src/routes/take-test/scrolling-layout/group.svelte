@@ -18,7 +18,7 @@
   let groupScored: number | undefined;
   let groupTotal = 0;
   $: {
-    if (!ctx.withCorrections) {
+    if (!$ctx.withCorrections) {
       break $;
     }
     if (style === "mcq") {
@@ -41,7 +41,7 @@
 </script>
 
 <GroupQuestionHeader {group} />
-{#if ctx.withCorrections}
+{#if $ctx.withCorrections}
   <code
     class={twMerge(
       "font-normal",

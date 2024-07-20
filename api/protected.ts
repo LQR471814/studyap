@@ -22,6 +22,7 @@ import { getAvailableQuestionCount } from "./methods/getAvailableQuestions"
 import { getQuestionAttempt } from "./methods/getQuestionAttempt"
 import { getTest } from "./methods/getTest"
 import { listCompleteTests } from "./methods/listCompleteTests"
+import { evalSingleFRQ } from "./methods/evalSingleFrq"
 
 type Context = {
   span: Span
@@ -265,9 +266,19 @@ export const protectedRouter = t.router({
       return evalMCQs(db, input)
     }),
   evalFRQs: t.procedure
-    .input(z.number().array().describe("list of frqAttempt.ids"))
+    .input(z.object({
+      testId: z.number(),
+      questionIds: z.number().array()
+    }))
     .mutation(({ ctx: { span, db, llm }, input }) => {
-      return evalFRQs(span, db, llm, input)
+      return evalFRQs(span, db, llm, input.testId, input.questionIds)
+    }),
+  evalSingleFRQ: t.procedure.input(z.object({
+    testId: z.number(),
+    questionId: z.number()
+  }))
+    .mutation(({ ctx: { span, db, llm }, input }) => {
+      return evalSingleFRQ(span, db, llm, input.testId, input.questionId)
     }),
   evalTest: t.procedure
     .input(z.number().describe("testAttempt.id"))
