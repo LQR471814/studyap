@@ -28,6 +28,7 @@
   "dependencies": {
     "@google/generative-ai": "0.12.0",
     "@libsql/client": "0.6.2",
+    "@macfja/svelte-persistent-store": "^2.4.1",
     "@microlabs/otel-cf-workers": "1.0.0-rc.40",
     "@opentelemetry/api": "1.6.0",
     "@opentelemetry/exporter-trace-otlp-http": "^0.52.0",

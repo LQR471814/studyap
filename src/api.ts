@@ -28,9 +28,9 @@ if (import.meta.env.DEV) {
         transformer: superjson,
         headers: {
           Authorization: "Bearer placeholder_token",
-        }
-      })
-    ]
+        },
+      }),
+    ],
   })
 }
 

@@ -1,11 +1,12 @@
 <script lang="ts">
   import { protectedApi } from "@/src/api";
-  import Question from "./question.svelte";
+  import Question from "../shared/question.svelte";
   import * as TextArea from "@ui-lib/components/ui/textarea";
   import pDebounce from "p-debounce";
   import { getContext } from "svelte";
-  import { type Context, contextSymbol } from "./context";
+  import { type Context, contextSymbol } from "../context";
   import SvelteMarkdown from "svelte-markdown";
+  import { writable } from "@macfja/svelte-persistent-store";
 
   const ctx = getContext<Context>(contextSymbol);
 
@@ -16,12 +17,15 @@
   export let total: number;
   export let explanation: string | null;
 
+  export let testAttemptId: number;
   export let questionId: number;
+
+  const value = writable(`frq:${testAttemptId}.${questionId}`, response);
 
   const save = pDebounce(async (response: string) => {
     await protectedApi.fillFRQs.mutate([
       {
-        testAttemptId: ctx.testAttemptId,
+        testAttemptId,
         questionId,
         contents: response,
       },
@@ -32,7 +36,17 @@
 </script>
 
 <Question {question} {questionNumber} />
-<TextArea.Root placeholder="Type your response here" bind:value={response} />
+
+<TextArea.Root
+  placeholder="Type your response here"
+  value={$value}
+  on:keydown={(e) => {
+    e.stopPropagation();
+  }}
+  on:input={(e) => {
+    $value = e.currentTarget.value;
+  }}
+/>
 {#if ctx.withCorrections}
   <div class="glass-panel text-sm">
     {#if explanation}

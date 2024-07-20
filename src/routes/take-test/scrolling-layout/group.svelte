@@ -1,11 +1,12 @@
 <script lang="ts">
   import type { Test } from "@/api/protected";
-  import Mcq from "./mcq.svelte";
-  import Frq from "./frq.svelte";
+  import Mcq from "../shared/mcq.svelte";
+  import Frq from "../shared/frq.svelte";
   import { getContext } from "svelte";
-  import { type Context, contextSymbol } from "./context";
+  import { type Context, contextSymbol } from "../context";
   import { twMerge } from "tailwind-merge";
-  import { heuristicUnescape } from "@/lib/utils";
+  import Stimulus from "../shared/stimulus.svelte";
+  import GroupQuestionHeader from "./group-question-header.svelte";
 
   const ctx = getContext<Context>(contextSymbol);
 
@@ -13,14 +14,6 @@
 
   $: stimulus = group.stimulus;
   $: style = group.frqAttempt.length > 0 ? ("frq" as const) : ("mcq" as const);
-  $: minQuestionNumber =
-    style === "mcq"
-      ? group.mcqAttempt[0].questionNumber
-      : group.frqAttempt[0].questionNumber;
-  $: maxQuestionNumber =
-    style === "mcq"
-      ? group.mcqAttempt[group.mcqAttempt.length - 1].questionNumber
-      : group.frqAttempt[group.frqAttempt.length - 1].questionNumber;
 
   let groupScored: number | undefined;
   let groupTotal = 0;
@@ -47,36 +40,29 @@
   }
 </script>
 
-<h2 class="flex justify-between text-xl font-semibold">
-  <span>
-    Questions {minQuestionNumber} - {maxQuestionNumber}
-  </span>
-  {#if ctx.withCorrections}
-    <code
-      class={twMerge(
-        "font-normal",
-        groupScored !== undefined
-          ? groupScored >= groupTotal
-            ? "text-green-700"
-            : "text-red-700"
-          : "",
-      )}>{groupScored}/{groupTotal}</code
-    >
-  {/if}
-</h2>
+<GroupQuestionHeader {group} />
+{#if ctx.withCorrections}
+  <code
+    class={twMerge(
+      "font-normal",
+      groupScored !== undefined
+        ? groupScored >= groupTotal
+          ? "text-green-700"
+          : "text-red-700"
+        : "",
+    )}
+  >
+    {groupScored}/{groupTotal}
+  </code>
+{/if}
+
 {#if stimulus.content}
-  <p>
-    {heuristicUnescape(stimulus.content)}
-  </p>
-  {#if stimulus.attribution}
-    <p class="italic">
-      — {heuristicUnescape(stimulus.attribution)}
-    </p>
-  {/if}
+  <Stimulus {stimulus} />
 {/if}
 {#if style === "mcq"}
   {#each group.mcqAttempt as mcq}
     <Mcq
+      testAttemptId={mcq.testId}
       question={mcq.question.content}
       questionId={mcq.questionId}
       questionNumber={mcq.questionNumber}
@@ -87,6 +73,7 @@
 {:else if style === "frq"}
   {#each group.frqAttempt as frq}
     <Frq
+      testAttemptId={frq.testId}
       question={frq.question.content}
       questionId={frq.questionId}
       questionNumber={frq.questionNumber}

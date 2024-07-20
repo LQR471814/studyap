@@ -12,8 +12,8 @@ import {
   type StartedTestContainer,
   Wait,
 } from "testcontainers"
-import { protectedRouter, t } from "../protected"
 import { afterAll } from "vitest"
+import { protectedRouter, t } from "../protected"
 
 initializeOtelVitest("test:api")
 

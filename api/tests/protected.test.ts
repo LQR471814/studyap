@@ -4,10 +4,10 @@ import {
   subject as subjectRow,
   unit,
 } from "@/lib/schema/schema"
-import { describe, expect, test } from "vitest"
-import { setupAPI, setupDummyDB } from "./setup"
-import type { Test } from "../protected"
 import { createFnSpanner } from "@/lib/telemetry/utils"
+import { describe, expect, test } from "vitest"
+import type { Test } from "../protected"
+import { setupAPI, setupDummyDB } from "./setup"
 
 const fnSpan = createFnSpanner("test_protected")
 
@@ -110,35 +110,43 @@ describe("createTest", () => {
       })
     })
 
-    testRepeatFor3Users("only-mcq or only-frq", (ctx, userEmail) => {
-      const { db, subject, frqs, mcqs } = ctx
+    testRepeatFor3Users(
+      "only-mcq or only-frq",
+      (ctx, userEmail) => {
+        const { db, subject, frqs, mcqs } = ctx
 
-      return fnSpan(span, `only-mcq or only-frq -> ${userEmail}`, async (span) => {
-        span.setAttribute("custom.userEmail", userEmail)
+        return fnSpan(
+          span,
+          `only-mcq or only-frq -> ${userEmail}`,
+          async (span) => {
+            span.setAttribute("custom.userEmail", userEmail)
 
-        const { api } = await setupAPI(db, span, userEmail)
+            const { api } = await setupAPI(db, span, userEmail)
 
-        const testAttemptId2 = await api.createTest({
-          subject: subject.id,
-          frqCount: 0,
-          mcqCount: mcqs.length,
-        })
-        const testAttemptId3 = await api.createTest({
-          subject: subject.id,
-          frqCount: frqs.length,
-          mcqCount: 0,
-        })
+            const testAttemptId2 = await api.createTest({
+              subject: subject.id,
+              frqCount: 0,
+              mcqCount: mcqs.length,
+            })
+            const testAttemptId3 = await api.createTest({
+              subject: subject.id,
+              frqCount: frqs.length,
+              mcqCount: 0,
+            })
 
-        const noFrqs = await api.getTest(testAttemptId2)
-        const noMcqs = await api.getTest(testAttemptId3)
+            const noFrqs = await api.getTest(testAttemptId2)
+            const noMcqs = await api.getTest(testAttemptId3)
 
-        expect(hasEmptyQuestionGroups(noFrqs)).toBe(false)
-        expect(hasEmptyQuestionGroups(noMcqs)).toBe(false)
+            expect(hasEmptyQuestionGroups(noFrqs)).toBe(false)
+            expect(hasEmptyQuestionGroups(noMcqs)).toBe(false)
 
-        await api.deleteTest(testAttemptId2)
-        await api.deleteTest(testAttemptId3)
-      })
-    }, 30000)
+            await api.deleteTest(testAttemptId2)
+            await api.deleteTest(testAttemptId3)
+          },
+        )
+      },
+      30000,
+    )
   })
 })
 

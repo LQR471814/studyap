@@ -7,7 +7,7 @@
   import RouteButton from "@ui-lib/components/custom/route-button.svelte";
   import CreateTest from "./routes/create-test.svelte";
   import TestsInProgress from "./routes/tests-in-progress.svelte";
-  import TestEntrypoint from "./routes/take-test/entrypoint.svelte";
+  import TestEntrypoint from "./routes/take-test/index.svelte";
   import TestHistory from "./routes/test-history.svelte";
   import LogoutIcon from "~icons/ri/logout-box-line";
   import { twMerge } from "tailwind-merge";

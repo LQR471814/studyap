@@ -5,12 +5,13 @@ import {
   mcqAttempt,
   subject,
   testAttempt,
+  testStimulus,
   unit,
   user,
 } from "@/lib/schema/schema"
 import type { Span } from "@opentelemetry/api"
 import { initTRPC } from "@trpc/server"
-import { and, eq } from "drizzle-orm"
+import { and, asc, desc, eq } from "drizzle-orm"
 import superjson from "superjson"
 import { z } from "zod"
 import { createTest, createTestOptions } from "./methods/createTest"
@@ -18,6 +19,7 @@ import { evalFRQs } from "./methods/evalFrqs"
 import { evalMCQs } from "./methods/evalMcqs"
 import { evalTest } from "./methods/evalTest"
 import { getAvailableQuestionCount } from "./methods/getAvailableQuestions"
+import { getQuestionAttempt } from "./methods/getQuestionAttempt"
 import { getTest } from "./methods/getTest"
 import { listCompleteTests } from "./methods/listCompleteTests"
 
@@ -86,6 +88,118 @@ export const protectedRouter = t.router({
     .input(z.number().describe("testAttempt.id"))
     .query(({ ctx: { db, userEmail }, input }) => {
       return getTest(db, userEmail, input)
+    }),
+  getTestName: t.procedure
+    .input(z.number().describe("testAttempt.id"))
+    .query(async ({ ctx: { db }, input }) => {
+      const row = await db.query.testAttempt.findFirst({
+        with: {
+          subject: true,
+        },
+        where: eq(testAttempt.id, input),
+      })
+      return row?.subject.name
+    }),
+  getLastQuestion: t.procedure
+    .input(z.number().describe("testAttempt.id"))
+    .query(async ({ ctx: { db }, input }) => {
+      const mcqs = await db
+        .select({ questionNumber: mcqAttempt.questionNumber })
+        .from(mcqAttempt)
+        .where(eq(mcqAttempt.testId, input))
+        .orderBy(asc(mcqAttempt.questionNumber))
+      const frqs = await db
+        .select({ questionNumber: frqAttempt.questionNumber })
+        .from(frqAttempt)
+        .where(eq(frqAttempt.testId, input))
+        .orderBy(asc(frqAttempt.questionNumber))
+
+      let lastQuestionNumber = 0
+      if (mcqs.length > 0) {
+        lastQuestionNumber = mcqs[mcqs.length - 1].questionNumber
+      }
+      if (frqs.length > 0) {
+        lastQuestionNumber = frqs[frqs.length - 1].questionNumber
+      }
+
+      return lastQuestionNumber
+    }),
+  listGroups: t.procedure
+    .input(z.number().describe("testAttempt.id"))
+    .query(({ ctx: { db }, input: testAttemptId }) => {
+      return db
+        .select({
+          stimulusId: testStimulus.stimulusId,
+          groupNumber: testStimulus.groupNumber,
+        })
+        .from(testStimulus)
+        .where(eq(testStimulus.testId, testAttemptId))
+    }),
+  getGroup: t.procedure
+    .input(
+      z.object({
+        testAttemptId: z.number(),
+        stimulusId: z.number(),
+      }),
+    )
+    .query(async ({ ctx: { db }, input }) => {
+      const group = await db.query.testStimulus.findFirst({
+        with: {
+          stimulus: true,
+        },
+        where: and(
+          eq(testStimulus.testId, input.testAttemptId),
+          eq(testStimulus.stimulusId, input.stimulusId),
+        ),
+      })
+      if (!group) {
+        throw new Error("unknown group")
+      }
+
+      const [maxMcqNo] = await db
+        .select({ questionNumber: mcqAttempt.questionNumber })
+        .from(mcqAttempt)
+        .where(eq(mcqAttempt.stimulusId, input.stimulusId))
+        .orderBy(desc(mcqAttempt.questionNumber))
+        .limit(1)
+      const [maxFrqNo] = await db
+        .select({ questionNumber: frqAttempt.questionNumber })
+        .from(frqAttempt)
+        .where(eq(frqAttempt.stimulusId, input.stimulusId))
+        .orderBy(desc(frqAttempt.questionNumber))
+        .limit(1)
+
+      const [minMcqNo] = await db
+        .select({ questionNumber: mcqAttempt.questionNumber })
+        .from(mcqAttempt)
+        .where(eq(mcqAttempt.stimulusId, input.stimulusId))
+        .orderBy(asc(mcqAttempt.questionNumber))
+        .limit(1)
+      const [minFrqNo] = await db
+        .select({ questionNumber: frqAttempt.questionNumber })
+        .from(frqAttempt)
+        .where(eq(frqAttempt.stimulusId, input.stimulusId))
+        .orderBy(asc(frqAttempt.questionNumber))
+        .limit(1)
+
+      const minNo = minMcqNo?.questionNumber ?? minFrqNo?.questionNumber
+      const maxNo = maxMcqNo?.questionNumber ?? maxFrqNo?.questionNumber
+
+      if (minNo === undefined || maxNo === undefined) {
+        throw new Error("undefined minNo or maxNo")
+      }
+
+      return { minNo, maxNo, group }
+    }),
+  getQuestionAttempt: t.procedure
+    .input(
+      z.object({
+        testAttemptId: z.number(),
+        questionNumber: z.number(),
+      }),
+    )
+    .query(({ ctx: { db }, input }) => {
+      return getQuestionAttempt(db, input.testAttemptId, input.questionNumber)
     }),
   fillFRQs: t.procedure
     .input(

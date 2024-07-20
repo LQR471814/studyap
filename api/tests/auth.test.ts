@@ -1,6 +1,6 @@
+import { createFnSpanner } from "@/lib/telemetry/utils"
 import { expect, test } from "vitest"
 import { generateCode, generateToken } from "../auth"
-import { createFnSpanner } from "@/lib/telemetry/utils"
 
 const fnSpan = createFnSpanner("test_auth")
 

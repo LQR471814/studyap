@@ -90,7 +90,6 @@ const escapedCharRegex = /(?:\\(.))/g
 /**
  * Heuristically unescape a string.
  */
-export function heuristicUnescape(text: string) :string {
+export function heuristicUnescape(text: string): string {
   return text.replaceAll(escapedCharRegex, "$1")
 }
-

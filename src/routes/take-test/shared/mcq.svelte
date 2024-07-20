@@ -3,11 +3,12 @@
   import { Label } from "@ui-lib/components/ui/label";
   import * as RadioGroup from "@ui-lib/components/ui/radio-group";
   import pdebounce from "p-debounce";
-  import { getContext } from "svelte";
+  import { createEventDispatcher, getContext } from "svelte";
   import { twMerge } from "tailwind-merge";
-  import { type Context, contextSymbol } from "./context";
-  import Question from "./question.svelte";
+  import { type Context, contextSymbol } from "../context";
+  import Question from "../shared/question.svelte";
   import { heuristicUnescape } from "@/lib/utils";
+  import { writable } from "@macfja/svelte-persistent-store";
 
   const ctx = getContext<Context>(contextSymbol);
 
@@ -21,17 +22,22 @@
   }[];
   export let selected: number | null;
   export let questionId: number;
+  export let testAttemptId: number;
 
-  const postChoice = pdebounce(() => {
-    if (!selected) {
+  const value = writable(`mcq:${testAttemptId}.${questionId}`, selected);
+
+  const dispatcher = createEventDispatcher<{ select: number }>();
+
+  $: postChoice = pdebounce(() => {
+    if (!$value) {
       return;
     }
     protectedApi.fillMCQs.mutate({
-      testAttemptId: ctx.testAttemptId,
+      testAttemptId: testAttemptId,
       questions: [
         {
           questionId: questionId,
-          questionChoiceId: selected,
+          questionChoiceId: $value,
         },
       ],
     });
@@ -39,14 +45,15 @@
 </script>
 
 <Question {question} {questionNumber} />
-<RadioGroup.Root class="py-2 gap-0" value={selected?.toString()}>
+
+<RadioGroup.Root class="py-2 gap-0" value={$value?.toString()}>
   {#each questionChoices as choice}
     {@const uniqueId = choice.id.toString()}
     <div
       class={twMerge(
         "flex items-center gap-2 pl-4",
         ctx.withCorrections
-          ? choice.id === selected
+          ? choice.id === $value
             ? choice.correct
               ? "text-green-700"
               : "text-red-700"
@@ -59,7 +66,8 @@
         value={choice.id.toString()}
         id={uniqueId}
         on:click={() => {
-          selected = choice.id;
+          $value = choice.id;
+          dispatcher("select", choice.id);
           postChoice();
         }}
       />
@@ -68,7 +76,7 @@
         {heuristicUnescape(choice.choice)}
       </Label>
 
-      {#if ctx.withCorrections && choice.id === selected}
+      {#if ctx.withCorrections && choice.id === $value}
         {#if choice.correct}
           <p class="text-green-700">✓</p>
         {:else}

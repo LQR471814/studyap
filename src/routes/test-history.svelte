@@ -1,8 +1,4 @@
 <script lang="ts">
-// import ScoreIcon from "~icons/ri/graduation-cap-line"
-// import CheckIcon from "~icons/ri/check-fill"
-// import BookIcon from "~icons/ri/book-open-line"
-// import StatisticCard from "@ui-lib/components/custom/statistic-card.svelte"
 import { format } from "date-fns"
 import { fly } from "svelte/transition"
 import { protectedApi } from "@/src/api"
@@ -15,7 +11,7 @@ import TrashIcon from "~icons/ri/delete-bin-5-line"
 import EyeIcon from "~icons/ri/eye-line"
 
 const complete = createQuery({
-  queryKey: ["test-history"],
+  queryKey: ["listCompleteTests"],
   queryFn: () => protectedApi.listCompleteTests.query(),
 })
 

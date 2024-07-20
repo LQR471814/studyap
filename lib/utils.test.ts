@@ -33,7 +33,7 @@ test("heuristicUnescape", () => {
   }[] = [
     {
       test: `\\"we are a family of four\\"`,
-      expect: `"we are a family of four"`
+      expect: `"we are a family of four"`,
     },
     {
       test: "FIND_BIN=\\$(which find)",
@@ -42,7 +42,7 @@ test("heuristicUnescape", () => {
     {
       test: "nothing happens",
       expect: "nothing happens",
-    }
+    },
   ]
 
   for (const testCase of testTable) {
@@ -50,4 +50,3 @@ test("heuristicUnescape", () => {
     expect(result).toBe(testCase.expect)
   }
 })
-

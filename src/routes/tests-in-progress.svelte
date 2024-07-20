@@ -1,33 +1,33 @@
 <script lang="ts">
-import { protectedApi } from "@/src/api"
-import { format } from "date-fns"
-import PlayIcon from "~icons/ri/play-mini-line"
-import TrashIcon from "~icons/ri/delete-bin-5-line"
-import { push } from "svelte-spa-router"
-import { fly } from "svelte/transition"
-import * as AlertDialog from "@ui-lib/components/ui/alert-dialog"
-import { twMerge } from "tailwind-merge"
-import { createQuery } from "@tanstack/svelte-query"
+  import { protectedApi } from "@/src/api";
+  import { format } from "date-fns";
+  import PlayIcon from "~icons/ri/play-mini-line";
+  import TrashIcon from "~icons/ri/delete-bin-5-line";
+  import { push } from "svelte-spa-router";
+  import { fly } from "svelte/transition";
+  import * as AlertDialog from "@ui-lib/components/ui/alert-dialog";
+  import { twMerge } from "tailwind-merge";
+  import { createQuery } from "@tanstack/svelte-query";
 
-const tests = createQuery({
-  queryKey: ["tests-in-progress"],
-  queryFn: () => protectedApi.listIncompleteTests.query(),
-})
+  const tests = createQuery({
+    queryKey: ["listIncompleteTests"],
+    queryFn: () => protectedApi.listIncompleteTests.query(),
+  });
 
-let deleting = false
+  let deleting = false;
 
-const deleteTest = (testId: number) => {
-  deleting = true
-  protectedApi.deleteTest
-    .mutate(testId)
-    .then(() => {
-      deleting = false
-      $tests.refetch()
-    })
-    .catch((err) => {
-      console.error(err)
-    })
-}
+  const deleteTest = (testId: number) => {
+    deleting = true;
+    protectedApi.deleteTest
+      .mutate(testId)
+      .then(() => {
+        deleting = false;
+        $tests.refetch();
+      })
+      .catch((err) => {
+        console.error(err);
+      });
+  };
 </script>
 
 <div class="flex h-full" in:fly={{ y: 10 }}>
