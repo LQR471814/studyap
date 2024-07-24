@@ -1,5 +1,5 @@
 import type { DB } from "@/lib/db"
-import { mcqAttempt, questionChoice } from "@/lib/schema/schema"
+import { mcqAttempt, questionChoice, testAttempt } from "@/lib/schema/schema"
 import { and, eq, inArray, isNotNull, or } from "drizzle-orm"
 
 export async function evalMCQs(db: DB, testId: number, questionIds: number[]) {
@@ -67,4 +67,9 @@ export async function evalMCQs(db: DB, testId: number, questionIds: number[]) {
         ),
       ),
     )
+
+  await db
+    .update(testAttempt)
+    .set({ mcqEvalUpToDate: true })
+    .where(eq(testAttempt.id, testId))
 }

@@ -15,7 +15,6 @@ import { and, asc, desc, eq } from "drizzle-orm"
 import superjson from "superjson"
 import { z } from "zod"
 import { createTest, createTestOptions } from "./methods/createTest"
-import { evalFRQs } from "./methods/evalFrqs"
 import { evalMCQs } from "./methods/evalMcqs"
 import { evalTest } from "./methods/evalTest"
 import { getAvailableQuestionCount } from "./methods/getAvailableQuestions"
@@ -23,6 +22,7 @@ import { getQuestionAttempt } from "./methods/getQuestionAttempt"
 import { getTest } from "./methods/getTest"
 import { listCompleteTests } from "./methods/listCompleteTests"
 import { evalSingleFRQ } from "./methods/evalSingleFrq"
+import { getFocusList } from "./methods/getFocusList"
 
 type Context = {
   span: Span
@@ -242,8 +242,8 @@ export const protectedRouter = t.router({
       }),
     )
     .mutation(async ({ ctx: { db }, input }) => {
-      await db.transaction((tx) => {
-        return Promise.all(
+      await db.transaction(async (tx) => {
+        await Promise.all(
           input.questions.map((r) =>
             tx
               .update(mcqAttempt)
@@ -258,20 +258,19 @@ export const protectedRouter = t.router({
               ),
           ),
         )
+        await tx
+          .update(testAttempt)
+          .set({ mcqEvalUpToDate: false })
+          .where(eq(testAttempt.id, input.testAttemptId))
       })
     }),
   evalMCQs: t.procedure
-    .input(z.number().array().describe("list of question.ids"))
-    .mutation(({ ctx: { db }, input }) => {
-      return evalMCQs(db, input)
-    }),
-  evalFRQs: t.procedure
     .input(z.object({
       testId: z.number(),
-      questionIds: z.number().array()
+      questionIds: z.number().array(),
     }))
-    .mutation(({ ctx: { span, db, llm }, input }) => {
-      return evalFRQs(span, db, llm, input.testId, input.questionIds)
+    .mutation(({ ctx: { db }, input }) => {
+      return evalMCQs(db, input.testId, input.questionIds)
     }),
   evalSingleFRQ: t.procedure.input(z.object({
     testId: z.number(),
@@ -305,6 +304,9 @@ export const protectedRouter = t.router({
   listCompleteTests: t.procedure.query(({ ctx: { db, userEmail } }) => {
     return listCompleteTests(db, userEmail)
   }),
+  getFocusList: t.procedure.query(({ ctx: { db, userEmail } }) => {
+    return getFocusList(db, userEmail)
+  })
 })
 
 export type ProtectedRouter = typeof protectedRouter

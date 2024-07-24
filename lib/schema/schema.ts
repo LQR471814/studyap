@@ -46,6 +46,7 @@ export const testAttempt = sqliteTable("testAttempt", {
     .references(() => user.email, CASCADE),
   createdAt: int("createdAt", { mode: "timestamp" }).notNull(),
   complete: int("complete", { mode: "boolean" }).notNull(),
+  mcqEvalUpToDate: int("mcqEvalUpToDate", { mode: "boolean" }).notNull().default(false),
 })
 
 export const testStimulus = sqliteTable(

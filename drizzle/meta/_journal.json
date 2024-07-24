@@ -8,6 +8,13 @@
       "when": 1718237229942,
       "tag": "0000_crazy_baron_zemo",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1721721204876,
+      "tag": "0001_faithful_thanos",
+      "breakpoints": true
     }
   ]
 }

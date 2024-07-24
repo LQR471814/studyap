@@ -50,35 +50,37 @@ export async function evalFRQs(
       span.setAttribute("responded", JSON.stringify(responded))
     }
 
-    await Promise.all(
-      responded.map(async (r) => {
-        const scored = await grade(
-          span,
-          llm,
-          {
-            stimulus: r.stimulus
-              ? formatStimulus(r.stimulus, r.imageAltText, r.attribution)
-              : null,
-            question: r.question,
-            totalPoints: r.totalPoints,
-            gradingGuidelines: r.guidelines ?? "",
-            response: r.response ?? "",
-          },
-        )
+    await db.transaction(async (tx) => {
+      await Promise.all(
+        responded.map(async (r) => {
+          const scored = await grade(
+            span,
+            llm,
+            {
+              stimulus: r.stimulus
+                ? formatStimulus(r.stimulus, r.imageAltText, r.attribution)
+                : null,
+              question: r.question,
+              totalPoints: r.totalPoints,
+              gradingGuidelines: r.guidelines ?? "",
+              response: r.response ?? "",
+            },
+          )
 
-        await db
-          .update(frqAttempt)
-          .set({
-            scoredPoints: scored.result.length,
-            scoringNotes: scored.result
-              .map((s) => `- +1 pt. - ${s}`)
-              .join("\n"),
-          })
-          .where(and(
-            eq(frqAttempt.testId, testId),
-            eq(frqAttempt.questionId, r.questionId),
-          ))
-      }),
-    )
+          await tx
+            .update(frqAttempt)
+            .set({
+              scoredPoints: scored.result.length,
+              scoringNotes: scored.result
+                .map((s) => `- +1 pt. - ${s}`)
+                .join("\n"),
+            })
+            .where(and(
+              eq(frqAttempt.testId, testId),
+              eq(frqAttempt.questionId, r.questionId),
+            ))
+        }),
+      )
+    })
   })
 }

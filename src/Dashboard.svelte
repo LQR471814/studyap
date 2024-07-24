@@ -9,12 +9,14 @@
   import TestsInProgress from "./routes/tests-in-progress.svelte";
   import TestEntrypoint from "./routes/take-test/index.svelte";
   import GradeTest from "./routes/take-test/grade.svelte";
-  import TestHistory from "./routes/test-history.svelte";
+  import TestHistory from "./routes/test-history/index.svelte";
   import LogoutIcon from "~icons/ri/logout-box-line";
   import { twMerge } from "tailwind-merge";
   import Branding from "@ui-lib/components/custom/branding.svelte";
   import * as AlertDialog from "@ui-lib/components/ui/alert-dialog";
   import { token } from "./api";
+  import FocusList from "./routes/focus-list/index.svelte";
+  import FocusIcon from "~icons/ri/focus-2-line";
 
   const routes = {
     "/create_test": CreateTest,
@@ -22,6 +24,7 @@
     "/take_test/:test_id": TestEntrypoint,
     "/test_history": TestHistory,
     "/test_history/:test_id": GradeTest,
+    "/focus_list": FocusList,
   };
 
   if (!(get(location) in routes)) {
@@ -48,6 +51,9 @@
       isSelected={(target, current) => current.startsWith(target)}
     >
       <HistoryIcon class="size-6" slot="icon" />
+    </RouteButton>
+    <RouteButton name="Focus List" target="/focus_list">
+      <FocusIcon class="size-6" slot="icon" />
     </RouteButton>
 
     <AlertDialog.Root>

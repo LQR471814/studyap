@@ -21,6 +21,10 @@ export async function grade(span: Span | undefined, llm: LLM, frq: Frq) {
       "evalSingleFRQ",
       3,
       async () => {
+        // return {
+        //   result: ["this is correct", "this is correct #2", "this is correct #3"]
+        // }
+
         const { stimulus, question, totalPoints, gradingGuidelines, response } = frq
 
         const gradingResponse = z.object({

@@ -1,0 +1,1 @@
+ALTER TABLE `testAttempt` ADD `mcqEvalUpToDate` integer DEFAULT false NOT NULL;
