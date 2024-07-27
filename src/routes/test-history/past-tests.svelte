@@ -41,6 +41,20 @@
       </Table.Header>
       <Table.Body>
         {#each $complete.data as attempt}
+          {@const scoredMcq = attempt.scoredMcq ?? 0}
+          {@const totalMcq = attempt.totalMcq ?? 0}
+          {@const mcqScore =
+            totalMcq === 0
+              ? `No multiple-choice questions present`
+              : `${Math.round((scoredMcq / totalMcq) * 100)}%`}
+
+          {@const scoredFrq = attempt.scoredFrq ?? 0}
+          {@const totalFrq = attempt.totalFrq ?? 0}
+          {@const frqScore =
+            totalFrq === 0
+              ? `No free-response questions present`
+              : `${Math.round((scoredFrq / totalFrq) * 100)}%`}
+
           <Table.Row>
             <Table.Cell class="py-3">
               <button
@@ -61,10 +75,10 @@
               {format(attempt.createdAt, "M / d / yyyy")}
             </Table.Cell>
             <Table.Cell>
-              {Math.round((attempt.scoredMcq / attempt.totalMcq) * 100)}%
+              {mcqScore}
             </Table.Cell>
             <Table.Cell>
-              {Math.round((attempt.scoredFrq / attempt.totalFrq) * 100)}%
+              {frqScore}
             </Table.Cell>
 
             <Table.Cell>
@@ -92,7 +106,7 @@
                     <AlertDialog.Action
                       on:click={(e) => {
                         e.preventDefault();
-                        $deleteTest.mutate(attempt.id)
+                        $deleteTest.mutate(attempt.id);
                       }}
                       disabled={$deleteTest.isPending}
                     >
