@@ -23,6 +23,7 @@ import { getTest } from "./methods/getTest"
 import { listCompleteTests } from "./methods/listCompleteTests"
 import { evalSingleFRQ } from "./methods/evalSingleFrq"
 import { getFocusList } from "./methods/getFocusList"
+import { getSubjectProgressChart } from "./methods/getSubjectProgressChart"
 
 type Context = {
   span: Span
@@ -306,6 +307,9 @@ export const protectedRouter = t.router({
   }),
   getFocusList: t.procedure.query(({ ctx: { db, userEmail } }) => {
     return getFocusList(db, userEmail)
+  }),
+  getSubjectProgressChart: t.procedure.query(({ ctx: { db, userEmail } }) => {
+    return getSubjectProgressChart(db, userEmail)
   })
 })
 
