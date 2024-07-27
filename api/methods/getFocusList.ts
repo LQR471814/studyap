@@ -1,7 +1,13 @@
-import type { DB } from "@/lib/db";
-import { frqAttempt, mcqAttempt, subject, testAttempt } from "@/lib/schema/schema";
-import { and, eq, inArray } from "drizzle-orm";
-import { evalMCQs } from "./evalMcqs";
+import type { DB } from "@/lib/db"
+import {
+  frqAttempt,
+  mcqAttempt,
+  subject,
+  testAttempt,
+} from "@/lib/schema/schema"
+import { and, eq, inArray } from "drizzle-orm"
+import { evalMCQs } from "./evalMcqs"
+import { frqs } from "@/cmd/generator/dummy"
 
 type QuestionStats = {
   totalScored: number
@@ -28,10 +34,7 @@ export type Subject = {
 }
 
 function incompleteUnit({ mcq, frq }: Unit): boolean {
-  return (
-    mcq.totalPoints === 0 &&
-    frq.totalPoints === 0
-  )
+  return mcq.totalPoints === 0 && frq.totalPoints === 0
 }
 
 /**
@@ -53,27 +56,30 @@ function unitPercent(mcq: QuestionStats, frq: QuestionStats): number {
 }
 
 async function ensureAllTestsUpToDate(db: DB, userEmail: string) {
-  const tests = await db.select({
-    id: testAttempt.id,
-    mcqUpToDate: testAttempt.mcqEvalUpToDate,
-  })
+  const tests = await db
+    .select({
+      id: testAttempt.id,
+      mcqUpToDate: testAttempt.mcqEvalUpToDate,
+    })
     .from(testAttempt)
-    .where(and(
-      eq(testAttempt.userEmail, userEmail),
-      eq(testAttempt.complete, true),
-    ))
+    .where(
+      and(eq(testAttempt.userEmail, userEmail), eq(testAttempt.complete, true)),
+    )
 
-  await Promise.all(tests.map(async (t) => {
-    if (t.mcqUpToDate) {
-      return
-    }
-    const questionIds = (await db
-      .select({ questionId: mcqAttempt.questionId })
-      .from(mcqAttempt)
-      .where(eq(mcqAttempt.testId, t.id)))
-      .map(q => q.questionId)
-    await evalMCQs(db, t.id, questionIds)
-  }))
+  await Promise.all(
+    tests.map(async (t) => {
+      if (t.mcqUpToDate) {
+        return
+      }
+      const questionIds = (
+        await db
+          .select({ questionId: mcqAttempt.questionId })
+          .from(mcqAttempt)
+          .where(eq(mcqAttempt.testId, t.id))
+      ).map((q) => q.questionId)
+      await evalMCQs(db, t.id, questionIds)
+    }),
+  )
 }
 
 /**
@@ -88,15 +94,17 @@ async function ensureAllTestsUpToDate(db: DB, userEmail: string) {
 export async function getFocusList(db: DB, userEmail: string) {
   await ensureAllTestsUpToDate(db, userEmail)
 
-  const testIds = (await db
-    .select({ id: testAttempt.id })
-    .from(testAttempt)
-    .where(and(
-      eq(testAttempt.userEmail, userEmail),
-      eq(testAttempt.complete, true),
-    ))
-  )
-    .map((r) => r.id)
+  const testIds = (
+    await db
+      .select({ id: testAttempt.id })
+      .from(testAttempt)
+      .where(
+        and(
+          eq(testAttempt.userEmail, userEmail),
+          eq(testAttempt.complete, true),
+        ),
+      )
+  ).map((r) => r.id)
   if (testIds.length === 0) {
     return []
   }
@@ -109,7 +117,7 @@ export async function getFocusList(db: DB, userEmail: string) {
   const subjects = await db.query.subject.findMany({
     columns: {
       id: true,
-      name: true
+      name: true,
     },
     with: {
       unit: {
@@ -118,18 +126,17 @@ export async function getFocusList(db: DB, userEmail: string) {
           name: true,
         },
         with: {
-          stimulusUnit: {
+          questionUnit: {
             columns: {},
             with: {
-              stimulus: {
-                columns: {},
+              question: {
+                columns: {
+                  totalPoints: true,
+                },
                 with: {
                   mcqAttempt: {
                     columns: {
                       scoredPoints: true,
-                    },
-                    with: {
-                      question: true,
                     },
                     where: inArray(mcqAttempt.testId, testIds),
                   },
@@ -137,19 +144,19 @@ export async function getFocusList(db: DB, userEmail: string) {
                     columns: {
                       scoredPoints: true,
                     },
-                    with: {
-                      question: true,
-                    },
                     where: inArray(frqAttempt.testId, testIds),
                   },
-                }
-              }
-            }
-          }
-        }
+                },
+              },
+            },
+          },
+        },
       },
     },
-    where: inArray(subject.id, subjectIds.map((r) => r.subjectId)),
+    where: inArray(
+      subject.id,
+      subjectIds.map((r) => r.subjectId),
+    ),
   })
 
   const resultSubjects: Subject[] = []
@@ -163,19 +170,18 @@ export async function getFocusList(db: DB, userEmail: string) {
       let totalFrqScored = 0
       let totalFrqPoints = 0
 
-      for (const stim of unit.stimulusUnit) {
-        for (const mcq of stim.stimulus.mcqAttempt) {
+      for (const quesUnit of unit.questionUnit) {
+        for (const mcq of quesUnit.question.mcqAttempt) {
           if (mcq.scoredPoints !== null) {
             totalMcqScored += mcq.scoredPoints
           }
-          totalMcqPoints += mcq.question.totalPoints
+          totalMcqPoints += quesUnit.question.totalPoints
         }
-
-        for (const frq of stim.stimulus.frqAttempt) {
+        for (const frq of quesUnit.question.frqAttempt) {
           if (frq.scoredPoints !== null) {
             totalFrqScored += frq.scoredPoints
           }
-          totalFrqPoints += frq.question.totalPoints
+          totalFrqPoints += quesUnit.question.totalPoints
         }
       }
 
@@ -194,7 +200,7 @@ export async function getFocusList(db: DB, userEmail: string) {
         mcq: mcqStat,
         frq: frqStat,
         overallPercent: unitPercent(mcqStat, frqStat),
-        practiced: mcqStat.totalPoints > 0 || frqStat.totalPoints > 0
+        practiced: mcqStat.totalPoints > 0 || frqStat.totalPoints > 0,
       })
     }
 
