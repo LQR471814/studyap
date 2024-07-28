@@ -2,7 +2,7 @@
   import { Radar } from "svelte-chartjs";
   import { protectedApi } from "@/src/api";
   import { createQuery } from "@tanstack/svelte-query";
-  import type { UnitStats } from "@/api/methods/getUnitProgressChart"
+  import type { UnitStats } from "@/api/methods/getUnitProgressChart";
 
   export let subjectId: number;
 
@@ -37,11 +37,27 @@
   }
 </script>
 
-<h1 class="text-2xl font-semibold">{$chartData.data?.subjectName ?? "Subject"} progress</h1>
+<h1 class="text-2xl font-semibold">
+  {$chartData.data?.subjectName ?? "Subject"} progress
+</h1>
 
 {#if $chartData.data}
   {@const dataRadar = createChartData($chartData.data.stats)}
-  <Radar data={dataRadar} options={{ responsive: true }} />
+  <Radar
+    data={dataRadar}
+    options={{
+      responsive: true,
+      scales: {
+        r: {
+          suggestedMin: 0,
+          ticks: {
+            stepSize: 1,
+            maxTicksLimit: 20,
+          },
+        },
+      },
+    }}
+  />
 {:else if $chartData.isPending}
   <p>loading...</p>
 {/if}

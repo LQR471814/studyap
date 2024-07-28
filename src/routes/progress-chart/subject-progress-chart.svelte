@@ -39,8 +39,8 @@
 
 {#if $chartData.data}
   <p>
-    Click any of the following specific subjects below to view detailed
-    progress information for that subject.
+    Click any of the following specific subjects below to view detailed progress
+    information for that subject.
   </p>
 
   <div class="flex gap-2 flex-wrap">
@@ -69,6 +69,7 @@
           suggestedMin: 0,
           ticks: {
             stepSize: 1,
+            maxTicksLimit: 20,
           },
         },
       },
