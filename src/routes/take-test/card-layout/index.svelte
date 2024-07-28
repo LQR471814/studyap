@@ -11,12 +11,13 @@
   import { type Context, contextSymbol } from "../context";
   import { createQuery } from "@tanstack/svelte-query";
   import Group from "./group.svelte";
-  import TestHeader from "../shared/test-header.svelte"
+  import TestHeader from "../shared/test-header.svelte";
 
   const ctx = getContext<Context>(contextSymbol);
 
   export let testAttemptId: number;
 
+  let showAnswer = false;
   let questionNumber = 1;
 
   $: groupList = createQuery({
@@ -136,7 +137,7 @@
   {#if $question.data?.frq}
     <Frq frq={$question.data.frq} />
   {:else if $question.data?.mcq}
-    <Mcq mcq={$question.data.mcq} />
+    <Mcq mcq={$question.data.mcq} {showAnswer} />
   {:else}
     <p>Loading question details...</p>
   {/if}
@@ -159,6 +160,17 @@
       {#if submitting}
         <p class="italic text-sm">This may take some time</p>
       {/if}
+
+      {#if !$ctx.withCorrections}
+        <Button class="w-fit" on:click={() => (showAnswer = !showAnswer)}>
+          {#if !showAnswer}
+            Show Answers
+          {:else}
+            Hide Answers
+          {/if}
+        </Button>
+      {/if}
+
       {#if !$ctx.withCorrections}
         <Button class="w-fit" disabled={submitting} on:click={submit}>
           Submit Test

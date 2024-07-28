@@ -3,6 +3,8 @@
   import type { Test } from "@/api/protected";
 
   export let mcq: Test["testStimulus"][number]["mcqAttempt"][number];
+  export let showAnswer: boolean;
+
   let response = mcq.response;
 </script>
 
@@ -16,4 +18,5 @@
   on:select={(e) => {
     response = e.detail;
   }}
+  {showAnswer}
 />

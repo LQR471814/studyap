@@ -23,6 +23,9 @@
   export let selected: number | null;
   export let questionId: number;
   export let testAttemptId: number;
+  export let showAnswer = false;
+
+  $: answerShown = showAnswer || $ctx.withCorrections;
 
   const value = writable(`mcq:${testAttemptId}.${questionId}`, selected);
 
@@ -42,7 +45,7 @@
       ],
     });
   }, 1000);
-  $: postChoice($value)
+  $: postChoice($value);
 </script>
 
 <Question {question} {questionNumber} />
@@ -54,7 +57,7 @@
     <div
       class={twMerge(
         "flex items-center gap-2 pl-4",
-        $ctx.withCorrections
+        answerShown
           ? choice.id === $value
             ? choice.correct
               ? "text-green-700"
@@ -77,7 +80,7 @@
         {heuristicUnescape(choice.choice)}
       </Label>
 
-      {#if $ctx.withCorrections && choice.id === $value}
+      {#if answerShown && choice.id === $value}
         {#if choice.correct}
           <p class="text-green-700">✓</p>
         {:else}
@@ -86,7 +89,7 @@
       {/if}
     </div>
 
-    {#if $ctx.withCorrections && choice.explanation && $value !== null}
+    {#if answerShown && choice.explanation && $value !== null}
       <p
         class={twMerge(
           choice.correct ? "text-green-700" : "text-red-700",
