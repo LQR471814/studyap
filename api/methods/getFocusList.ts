@@ -7,7 +7,6 @@ import {
 } from "@/lib/schema/schema"
 import { and, eq, inArray } from "drizzle-orm"
 import { evalMCQs } from "./evalMcqs"
-import { frqs } from "@/cmd/generator/dummy"
 
 type QuestionStats = {
   totalScored: number

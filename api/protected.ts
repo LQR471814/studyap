@@ -24,6 +24,7 @@ import { listCompleteTests } from "./methods/listCompleteTests"
 import { evalSingleFRQ } from "./methods/evalSingleFrq"
 import { getFocusList } from "./methods/getFocusList"
 import { getSubjectProgressChart } from "./methods/getSubjectProgressChart"
+import { getUnitProgressChart } from "./methods/getUnitProgressChart"
 
 type Context = {
   span: Span
@@ -266,17 +267,22 @@ export const protectedRouter = t.router({
       })
     }),
   evalMCQs: t.procedure
-    .input(z.object({
-      testId: z.number(),
-      questionIds: z.number().array(),
-    }))
+    .input(
+      z.object({
+        testId: z.number(),
+        questionIds: z.number().array(),
+      }),
+    )
     .mutation(({ ctx: { db }, input }) => {
       return evalMCQs(db, input.testId, input.questionIds)
     }),
-  evalSingleFRQ: t.procedure.input(z.object({
-    testId: z.number(),
-    questionId: z.number()
-  }))
+  evalSingleFRQ: t.procedure
+    .input(
+      z.object({
+        testId: z.number(),
+        questionId: z.number(),
+      }),
+    )
     .mutation(({ ctx: { span, db, llm }, input }) => {
       return evalSingleFRQ(span, db, llm, input.testId, input.questionId)
     }),
@@ -310,7 +316,16 @@ export const protectedRouter = t.router({
   }),
   getSubjectProgressChart: t.procedure.query(({ ctx: { db, userEmail } }) => {
     return getSubjectProgressChart(db, userEmail)
-  })
+  }),
+  getUnitProgressChart: t.procedure
+    .input(
+      z.object({
+        subjectId: z.number(),
+      }),
+    )
+    .query(({ ctx: { db, userEmail }, input }) => {
+      return getUnitProgressChart(db, userEmail, input.subjectId)
+    }),
 })
 
 export type ProtectedRouter = typeof protectedRouter

@@ -17,6 +17,8 @@
   import { token } from "./api";
   import FocusList from "./routes/focus-list/index.svelte";
   import FocusIcon from "~icons/ri/focus-2-line";
+  import ProgressChart from "./routes/progress-chart/index.svelte";
+  import DonutChartIcon from "~icons/ri/donut-chart-fill";
 
   const routes = {
     "/create_test": CreateTest,
@@ -25,6 +27,8 @@
     "/test_history": TestHistory,
     "/test_history/:test_id": GradeTest,
     "/focus_list": FocusList,
+    "/progress_chart": ProgressChart,
+    "/progress_chart/:subject_id": ProgressChart,
   };
 
   if (!(get(location) in routes)) {
@@ -54,6 +58,9 @@
     </RouteButton>
     <RouteButton name="Focus List" target="/focus_list">
       <FocusIcon class="size-6" slot="icon" />
+    </RouteButton>
+    <RouteButton name="Progress" target="/progress_chart">
+      <DonutChartIcon class="size-6" slot="icon" />
     </RouteButton>
 
     <AlertDialog.Root>

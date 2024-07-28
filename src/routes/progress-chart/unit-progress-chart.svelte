@@ -2,14 +2,19 @@
   import { Radar } from "svelte-chartjs";
   import { protectedApi } from "@/src/api";
   import { createQuery } from "@tanstack/svelte-query";
-  import type { SubjectStats } from "@/api/methods/getSubjectProgressChart";
+  import type { UnitStats } from "@/api/methods/getUnitProgressChart"
 
-  const subjectChart = createQuery({
-    queryKey: ["getSubjectProgressChart"],
-    queryFn: () => protectedApi.getSubjectProgressChart.query(),
+  export let subjectId: number;
+
+  $: chartData = createQuery({
+    queryKey: ["getUnitProgressChart", subjectId],
+    queryFn: () =>
+      protectedApi.getUnitProgressChart.query({
+        subjectId,
+      }),
   });
 
-  function createChartData(stats: SubjectStats[]) {
+  function createChartData(stats: UnitStats[]) {
     const labels: string[] = stats.map((s) => s.name);
 
     const completedDataset = {
@@ -30,12 +35,13 @@
       datasets: [totalDataset, completedDataset],
     };
   }
-
-  $: dataRadar = $subjectChart.data
-    ? createChartData($subjectChart.data)
-    : undefined;
 </script>
 
-{#if dataRadar}
+<h1 class="text-2xl font-semibold">{$chartData.data?.subjectName ?? "Subject"} progress</h1>
+
+{#if $chartData.data}
+  {@const dataRadar = createChartData($chartData.data.stats)}
   <Radar data={dataRadar} options={{ responsive: true }} />
+{:else if $chartData.isPending}
+  <p>loading...</p>
 {/if}

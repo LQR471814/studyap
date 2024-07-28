@@ -1,6 +1,13 @@
-import type { DB } from "@/lib/db";
-import { stimulus, question, frqAttempt, mcqAttempt, testAttempt, subject } from "@/lib/schema/schema";
-import { and, eq, isNotNull, sql } from "drizzle-orm";
+import type { DB } from "@/lib/db"
+import {
+  stimulus,
+  question,
+  frqAttempt,
+  mcqAttempt,
+  testAttempt,
+  subject,
+} from "@/lib/schema/schema"
+import { and, eq, isNotNull, sql } from "drizzle-orm"
 
 export type SubjectStats = {
   id: number
@@ -10,12 +17,20 @@ export type SubjectStats = {
   totalQuestions: number
 }
 
-export async function getSubjectProgressChart(db: DB, userEmail: string): Promise<SubjectStats[]> {
+export async function getSubjectProgressChart(
+  db: DB,
+  userEmail: string,
+): Promise<SubjectStats[]> {
   const userSubjects = db
-    .selectDistinct({ subjectId: testAttempt.subjectId, subjectName: subject.name })
+    .selectDistinct({
+      subjectId: testAttempt.subjectId,
+      subjectName: subject.name,
+    })
     .from(testAttempt)
-    .where(eq(testAttempt.userEmail, userEmail))
-    .innerJoin(subject, eq(testAttempt.subjectId, subject))
+    .where(
+      and(eq(testAttempt.userEmail, userEmail), eq(testAttempt.complete, true)),
+    )
+    .innerJoin(subject, eq(testAttempt.subjectId, subject.id))
     .as("userSubjects")
 
   const stats: SubjectStats[] = []
@@ -24,39 +39,46 @@ export async function getSubjectProgressChart(db: DB, userEmail: string): Promis
     .select({
       subjectId: userSubjects.subjectId,
       subjectName: userSubjects.subjectName,
-      questionCount: sql<number>`count(distinct ${question.id})`
+      questionCount: sql<number>`count(distinct ${question.id})`,
     })
     .from(userSubjects)
-    .innerJoin(stimulus, eq(stimulus.subjectId, userSubjects.subjectId))
-    .innerJoin(question, eq(question.stimulusId, stimulus.id))
+    .leftJoin(stimulus, eq(stimulus.subjectId, userSubjects.subjectId))
+    .leftJoin(question, eq(question.stimulusId, stimulus.id))
     .groupBy(userSubjects.subjectId)
 
   for (const q of totalSubjectQuestions) {
-    const [{ mcqQuestionCount }] = await db
+    const mcqRows = await db
       .select({
-        mcqQuestionCount: sql<number>`count(distinct ${mcqAttempt.questionId})`
+        mcqQuestionCount: sql<number>`count(distinct ${mcqAttempt.questionId})`,
       })
       .from(testAttempt)
-      .innerJoin(mcqAttempt, eq(mcqAttempt.testId, testAttempt.id))
-      .where(and(
-        eq(testAttempt.subjectId, q.subjectId),
-        eq(testAttempt.userEmail, userEmail),
-        isNotNull(mcqAttempt.scoredPoints),
-      ))
+      .leftJoin(mcqAttempt, eq(mcqAttempt.testId, testAttempt.id))
+      .where(
+        and(
+          eq(testAttempt.subjectId, q.subjectId),
+          eq(testAttempt.userEmail, userEmail),
+          isNotNull(mcqAttempt.scoredPoints),
+        ),
+      )
       .groupBy(testAttempt.id)
 
-    const [{ frqQuestionCount }] = await db
+    const frqRows = await db
       .select({
         frqQuestionCount: sql<number>`count(distinct ${frqAttempt.questionId})`,
       })
       .from(testAttempt)
-      .innerJoin(frqAttempt, eq(frqAttempt.testId, testAttempt.id))
-      .where(and(
-        eq(testAttempt.subjectId, q.subjectId),
-        eq(testAttempt.userEmail, userEmail),
-        isNotNull(frqAttempt.scoredPoints),
-      ))
+      .leftJoin(frqAttempt, eq(frqAttempt.testId, testAttempt.id))
+      .where(
+        and(
+          eq(testAttempt.subjectId, q.subjectId),
+          eq(testAttempt.userEmail, userEmail),
+          isNotNull(frqAttempt.scoredPoints),
+        ),
+      )
       .groupBy(testAttempt.id)
+
+    const mcqQuestionCount = mcqRows[0]?.mcqQuestionCount ?? 0
+    const frqQuestionCount = frqRows[0]?.frqQuestionCount ?? 0
 
     stats.push({
       id: q.subjectId,
