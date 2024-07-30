@@ -15,6 +15,13 @@
       "when": 1721721204876,
       "tag": "0001_faithful_thanos",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1722374983391,
+      "tag": "0002_fair_kingpin",
+      "breakpoints": true
     }
   ]
 }

@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX `subject_name_unique` ON `subject` (`name`);

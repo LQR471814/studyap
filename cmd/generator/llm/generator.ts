@@ -94,6 +94,12 @@ export class LLMGenerator {
           name: this.config.subjectName,
           version: this.config.version,
         })
+        .onConflictDoUpdate({
+          set: {
+            version: this.config.version,
+          },
+          target: subject.name,
+        })
         .returning()
 
       if (span.isRecording()) {

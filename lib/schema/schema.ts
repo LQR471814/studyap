@@ -117,7 +117,7 @@ export const frqAttempt = sqliteTable(
 export const subject = sqliteTable("subject", {
   version: int("version").notNull(),
   id: int("id").notNull().primaryKey({ autoIncrement: true }),
-  name: text("name").notNull(),
+  name: text("name").notNull().unique(),
 })
 
 export const unit = sqliteTable("unit", {
