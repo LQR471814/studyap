@@ -1,5 +1,5 @@
-import { formatStimulus } from "@/cmd/generator/llm/synthetic-prompts"
 import type { DB } from "@/lib/db"
+import { formatStimulus } from "@/lib/llm-test-generator/synthetic-prompts"
 import type { LLM } from "@/lib/llm/core"
 import { frqAttempt, question, stimulus } from "@/lib/schema/schema"
 import type { Span } from "@opentelemetry/api"
@@ -53,19 +53,15 @@ export async function evalFRQs(
     await db.transaction(async (tx) => {
       await Promise.all(
         responded.map(async (r) => {
-          const scored = await grade(
-            span,
-            llm,
-            {
-              stimulus: r.stimulus
-                ? formatStimulus(r.stimulus, r.imageAltText, r.attribution)
-                : null,
-              question: r.question,
-              totalPoints: r.totalPoints,
-              gradingGuidelines: r.guidelines ?? "",
-              response: r.response ?? "",
-            },
-          )
+          const scored = await grade(span, llm, {
+            stimulus: r.stimulus
+              ? formatStimulus(r.stimulus, r.imageAltText, r.attribution)
+              : null,
+            question: r.question,
+            totalPoints: r.totalPoints,
+            gradingGuidelines: r.guidelines ?? "",
+            response: r.response ?? "",
+          })
 
           await tx
             .update(frqAttempt)
@@ -75,10 +71,12 @@ export async function evalFRQs(
                 .map((s) => `- +1 pt. - ${s}`)
                 .join("\n"),
             })
-            .where(and(
-              eq(frqAttempt.testId, testId),
-              eq(frqAttempt.questionId, r.questionId),
-            ))
+            .where(
+              and(
+                eq(frqAttempt.testId, testId),
+                eq(frqAttempt.questionId, r.questionId),
+              ),
+            )
         }),
       )
     })

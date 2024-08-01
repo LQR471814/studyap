@@ -43,4 +43,3 @@ export const unitNames = [
 ]
 
 export const cli = await CLI.create(subjectName, unitNames, config)
-

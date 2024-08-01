@@ -1,8 +1,8 @@
 import type { Span } from "@opentelemetry/api"
-import type { LLMGeneratorConfig } from "./config"
 import { z } from "zod"
-import { FrqPrompts, McqPrompts, StimulusPrompts } from "./synthetic-prompts"
+import type { LLMGeneratorConfig } from "./config"
 import { LLMJobQueue } from "./llm-job-queue"
+import { FrqPrompts, McqPrompts, StimulusPrompts } from "./synthetic-prompts"
 
 export { Append } from "./append"
 export type { LLMGeneratorConfig }
@@ -106,7 +106,7 @@ export class LLMGenerator {
         .string()
         .describe(
           this.config.mcqs.descriptions.question ??
-          "The plain text question content of the multiple choice question.",
+            "The plain text question content of the multiple choice question.",
         ),
       choiceA: this.answerChoiceSchema.describe(
         "Answer choice A, this should be an object.",
@@ -201,19 +201,19 @@ export class LLMGenerator {
         .string()
         .describe(
           this.config.frqs.descriptions.question ??
-          "The plain text question content of the free response question.",
+            "The plain text question content of the free response question.",
         ),
       guidelines: z
         .string()
         .describe(
           this.config.frqs.descriptions.guidelines ??
-          "Grading guidelines to be given to a grader on how they should score an arbitrary student response to the question.",
+            "Grading guidelines to be given to a grader on how they should score an arbitrary student response to the question.",
         ),
       totalPoints: z
         .number()
         .describe(
           this.config.frqs.descriptions.totalPoints ??
-          "The total amount of points a student can earn on this question, as specified by the 'guidelines' key.",
+            "The total amount of points a student can earn on this question, as specified by the 'guidelines' key.",
         ),
     })
 

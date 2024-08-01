@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto"
 import { fnSpan } from "@/api/tracer"
 import type {
   FunctionDefs,
@@ -6,7 +7,6 @@ import type {
   LLM,
 } from "@/lib/llm/core"
 import type { Span } from "@opentelemetry/api"
-import { createHash } from "node:crypto"
 import zodToJsonSchema from "zod-to-json-schema"
 
 /**
@@ -80,7 +80,9 @@ export class LLMJobQueue {
         }
 
         const timeout = 2 ** i
-        console.log(`[WARN] generation job failed, retrying in ${timeout} seconds...`)
+        console.log(
+          `[WARN] generation job failed, retrying in ${timeout} seconds...`,
+        )
 
         // exponential back off
         await new Promise((r) => setTimeout(r, timeout * 1000))
