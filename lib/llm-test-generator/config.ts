@@ -19,18 +19,6 @@ export type StimulusConfig = {
      */
     attribution: string
   }
-  /**
-   * The number of stimuli to generate per unit.
-   */
-  stimuliPerUnit: number
-  /**
-   * The number of stimuli to generate pertaining to 2 random units.
-   */
-  doubleUnitCount: number
-  /**
-   * The number of stimuli to generate pertaining to 3 random units.
-   */
-  tripleUnitCount: number
 }
 
 export type McqConfig = {
@@ -48,16 +36,6 @@ export type McqConfig = {
      */
     question?: string
   }
-  /**
-   * The number of questions to generate per stimulus.
-   */
-  questionsPerStimulus: number
-  /**
-   * The number of questions to generate with 2 answer choices.
-   *
-   * A random stimulus will be chosen to add the question to.
-   */
-  doubleAnswerCount: number
 }
 
 export type FrqConfig = {
@@ -94,16 +72,9 @@ export type FrqConfig = {
      */
     totalPoints?: string
   }
-  /**
-   * The number of questions to generate per stimulus.
-   */
-  questionsPerStimulus: number
 }
 
-export type Config = {
-  version: number
-  subjectName: string
-  unitNames: string[]
+export type LLMGeneratorConfig = {
   stimuli: StimulusConfig
   mcqs: McqConfig
   frqs: FrqConfig

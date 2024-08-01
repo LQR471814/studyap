@@ -6,8 +6,10 @@ pnpm dev
 pnpm db:push
 
 pnpm tsx cmd/generator/dummy
-# or if you want to generate using openai or gemini (whichever one you've configured)
-pnpm dev:gen
+# or if you're running actual generation
+pnpm tsx cmd/generator/<subject_name>/stimuli.ts
+pnpm tsx cmd/generator/<subject_name>/mcqs.ts
+pnpm tsx cmd/generator/<subject_name>/frqs.ts
 ```
 
 make sure you set the required environment variables and follow the steps under "setting up mailgun".

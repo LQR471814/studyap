@@ -4,6 +4,7 @@ import {
   primaryKey,
   sqliteTable,
   text,
+  unique,
 } from "drizzle-orm/sqlite-core"
 
 const CASCADE = {
@@ -46,7 +47,9 @@ export const testAttempt = sqliteTable("testAttempt", {
     .references(() => user.email, CASCADE),
   createdAt: int("createdAt", { mode: "timestamp" }).notNull(),
   complete: int("complete", { mode: "boolean" }).notNull(),
-  mcqEvalUpToDate: int("mcqEvalUpToDate", { mode: "boolean" }).notNull().default(false),
+  mcqEvalUpToDate: int("mcqEvalUpToDate", { mode: "boolean" })
+    .notNull()
+    .default(false),
 })
 
 export const testStimulus = sqliteTable(
@@ -120,14 +123,20 @@ export const subject = sqliteTable("subject", {
   name: text("name").notNull().unique(),
 })
 
-export const unit = sqliteTable("unit", {
-  version: int("version").notNull(),
-  id: int("id").notNull().primaryKey({ autoIncrement: true }),
-  subjectId: int("subjectId")
-    .notNull()
-    .references(() => subject.id, CASCADE),
-  name: text("name").notNull(),
-})
+export const unit = sqliteTable(
+  "unit",
+  {
+    version: int("version").notNull(),
+    id: int("id").notNull().primaryKey({ autoIncrement: true }),
+    subjectId: int("subjectId")
+      .notNull()
+      .references(() => subject.id, CASCADE),
+    name: text("name").notNull(),
+  },
+  (table) => ({
+    uniqueName: unique("uniqueName").on(table.subjectId, table.name),
+  }),
+)
 
 export const stimulus = sqliteTable("stimulus", {
   version: int("version").notNull(),

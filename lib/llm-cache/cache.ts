@@ -8,22 +8,11 @@ import type {
   LLM,
 } from "@/lib/llm/core"
 import { createFnSpanner, narrowError } from "@/lib/telemetry/utils"
-import {
-  GoogleGenerativeAIFetchError,
-  GoogleGenerativeAIResponseError,
-} from "@google/generative-ai"
 import { type Span, SpanStatusCode } from "@opentelemetry/api"
 import Sqlite from "better-sqlite3"
 import { eq } from "drizzle-orm"
 import { type BetterSQLite3Database, drizzle } from "drizzle-orm/better-sqlite3"
 import { migrate } from "drizzle-orm/better-sqlite3/migrator"
-import {
-  APIConnectionError,
-  APIConnectionTimeoutError,
-  APIUserAbortError,
-  InternalServerError,
-  RateLimitError,
-} from "openai"
 import PQueue from "p-queue"
 import zodToJsonSchema from "zod-to-json-schema"
 import * as schema from "./schema/schema"
@@ -59,23 +48,26 @@ export class LLMCache {
   db: BetterSQLite3Database<typeof schema & typeof rels>
   llm: LLM
   queue: PQueue | null
+  revalidateInProgress: Map<string, Promise<GenerateResult<FunctionDefs>>>
 
   constructor({ llm, queue, cacheFile }: LLMCacheOptions) {
     this.llm = llm
     this.queue =
       queue === undefined
         ? new PQueue({
-            concurrency: 3,
+            concurrency: 2,
             autoStart: true,
-            // 1 minute
+            // 10 per 10 seconds
             interval: 10 * 1000,
-            intervalCap: 3,
+            intervalCap: 10,
             carryoverConcurrencyCount: true,
           })
         : queue
     this.db = drizzle(new Sqlite(cacheFile ?? "llm-cache.db"), {
       schema: { ...schema, ...rels },
     })
+
+    this.revalidateInProgress = new Map()
 
     const __dirname = fileURLToPath(new URL(".", import.meta.url))
     migrate(this.db, {
@@ -134,142 +126,108 @@ export class LLMCache {
     return createHash("md5").update(string).digest("hex")
   }
 
-  async revalidate<F extends FunctionDefs>(
+  private async revalidate<F extends FunctionDefs>(
     span: Span | undefined,
     request: GenerateRequest<F>,
     hash?: string,
   ): Promise<GenerateResult<F>> {
     const id = hash ?? this.hashRequest(request)
 
-    return fnSpan(span, "revalidate", async (span) => {
+    const existing = this.revalidateInProgress.get(id)
+    if (existing) {
+      return existing
+    }
+
+    console.log("revalidating LLM generation...", id)
+
+    const revalidatePromise = fnSpan(span, "revalidate", async (span) => {
       if (span.isRecording()) {
         span.setAttribute("id", id)
       }
 
-      for (let i = 0; i < 5; i++) {
+      const response = await this.generateWithTimeout(span, request)
+      if (response instanceof LLMTimedOut) {
+        throw response
+      }
+      if (response instanceof PromiseQueueDropped) {
         if (span.isRecording()) {
-          span.addEvent("running generation request...", { attempt: i + 1 })
-        }
-
-        try {
-          const response = await this.generateWithTimeout(span, request)
-          if (response instanceof LLMTimedOut) {
-            throw response
-          }
-          if (response instanceof PromiseQueueDropped) {
-            if (span.isRecording()) {
-              span.setStatus({
-                code: SpanStatusCode.ERROR,
-                message:
-                  "PROMISE QUEUE DROPPED REQUEST, this should never happen!",
-              })
-            }
-            throw response
-          }
-
-          if (span.isRecording()) {
-            span.addEvent("response.returns", {
-              returns_length: response.returns
-                ? Object.keys(response.returns).length
-                : "undefined",
-            })
-          }
-
-          this.db.transaction((tx) => {
-            tx.delete(schema.completion)
-              .where(eq(schema.completion.id, id))
-              .run()
-
-            tx.insert(schema.completion)
-              .values({
-                id: id,
-                text: response.text,
-              })
-              .run()
-
-            if (
-              response.returns &&
-              Object.entries(response.returns).length > 0
-            ) {
-              tx.insert(schema.completionFunctionCall)
-                .values(
-                  Object.entries(response.returns).map(([name, returns]) => ({
-                    completionId: id,
-                    functionName: name,
-                    result: JSON.stringify(returns),
-                  })),
-                )
-                .run()
-            }
+          span.setStatus({
+            code: SpanStatusCode.ERROR,
+            message: "PROMISE QUEUE DROPPED REQUEST, this should never happen!",
           })
-
-          if (span.isRecording()) {
-            span.addEvent("CACHE ADD", {
-              id: id,
-              function_returns: response.returns
-                ? JSON.stringify(Object.keys(response.returns))
-                : "<EMPTY FUNCTION RETURN>",
-            })
-          }
-
-          return response
-        } catch (err) {
-          if (
-            !(
-              err instanceof PromiseQueueDropped ||
-              err instanceof LLMTimedOut ||
-              // gemini
-              err instanceof GoogleGenerativeAIFetchError ||
-              err instanceof GoogleGenerativeAIResponseError ||
-              // openai
-              err instanceof APIConnectionError ||
-              err instanceof RateLimitError ||
-              err instanceof InternalServerError ||
-              err instanceof APIConnectionTimeoutError ||
-              err instanceof APIUserAbortError
-            )
-          ) {
-            throw err
-          }
-
-          span.recordException(narrowError(err))
-          span.addEvent(
-            "caught an error while attempting to run LLM generate request, retrying...",
-            { "log.severity": "WARN" },
-          )
-
-          await new Promise((r) => setTimeout(r, 2 ** i * 1000))
         }
+        throw response
       }
 
       if (span.isRecording()) {
-        span.setStatus({
-          code: SpanStatusCode.ERROR,
-          message: "Failed to revalidate cache after retrying 5 times...",
+        span.addEvent("response.returns", {
+          returns_length: response.returns
+            ? Object.keys(response.returns).length
+            : "undefined",
         })
       }
-      throw new Error("Failed to revalidate cache after retrying 5 times...")
+
+      this.db.transaction((tx) => {
+        tx.delete(schema.completion).where(eq(schema.completion.id, id)).run()
+
+        tx.insert(schema.completion)
+          .values({
+            id: id,
+            text: response.text,
+          })
+          .run()
+
+        if (response.returns && Object.entries(response.returns).length > 0) {
+          tx.insert(schema.completionFunctionCall)
+            .values(
+              Object.entries(response.returns).map(([name, returns]) => ({
+                completionId: id,
+                functionName: name,
+                result: JSON.stringify(returns),
+              })),
+            )
+            .run()
+        }
+      })
+
+      if (span.isRecording()) {
+        span.addEvent("CACHE ADD", {
+          id: id,
+          function_returns: response.returns
+            ? JSON.stringify(Object.keys(response.returns))
+            : "<EMPTY FUNCTION RETURN>",
+        })
+      }
+
+      return response
     })
+
+    this.revalidateInProgress.set(id, revalidatePromise)
+    return revalidatePromise
   }
 
-  async generate<F extends FunctionDefs>(
+  generate<F extends FunctionDefs>(
     span: Span | undefined,
     request: GenerateRequest<F>,
   ): Promise<GenerateResult<F>> {
     const id = this.hashRequest(request)
 
-    return fnSpan(span, "generate", async (span) => {
+    return fnSpan(span, "generate", (span) => {
       if (span.isRecording()) {
         span.setAttribute("id", id)
       }
 
-      const completion = await this.db.query.completion.findFirst({
-        with: {
-          completionFunctionCall: true,
-        },
-        where: eq(schema.completion.id, id),
-      })
+      const completion = this.db.query.completion
+        .findFirst({
+          with: {
+            completionFunctionCall: true,
+          },
+          where: eq(schema.completion.id, id),
+        })
+        .sync()
       if (!completion) {
+        console.log("cache miss...", id)
+
         if (span.isRecording()) {
           span.setStatus({
             code: SpanStatusCode.OK,
@@ -300,6 +258,8 @@ export class LLMCache {
         }
       }
 
+      console.log("cache hit...", id)
+
       if (span.isRecording()) {
         span.setStatus({
           code: SpanStatusCode.OK,
@@ -307,10 +267,23 @@ export class LLMCache {
         })
       }
 
-      return {
+      return Promise.resolve({
         text: completion.text,
         returns,
-      }
+      })
+    })
+  }
+
+  invalidate<F extends FunctionDefs>(
+    span: Span | undefined,
+    request: GenerateRequest<F>,
+  ) {
+    const id = this.hashRequest(request)
+    return fnSpan(span, "invalidate", () => {
+      this.db
+        .delete(schema.completion)
+        .where(eq(schema.completion.id, id))
+        .run()
     })
   }
 }
