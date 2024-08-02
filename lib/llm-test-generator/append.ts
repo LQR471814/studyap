@@ -137,8 +137,8 @@ export class Append {
           .returning({ id: question.id })
 
         await tx.insert(questionChoice).values(
-          this.mcqs.flatMap((m) =>
-            m.choices.map((c, i) => ({
+          this.mcqs.flatMap((m, i) =>
+            m.choices.map((c) => ({
               questionId: questionIds[i].id,
               choice: c.text,
               correct: c.correct,
