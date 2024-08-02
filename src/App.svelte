@@ -6,16 +6,18 @@
   import Dashboard from "./Dashboard.svelte";
   import { token } from "./api";
   import { QueryClient, QueryClientProvider } from "@tanstack/svelte-query";
+  import Landing from "./Landing.svelte";
 
   const queryClient = new QueryClient();
 
   const routes = {
+    "/landing": Landing,
     "/login": Login,
     "/verify_code": VerifyCode,
   };
 
   if (!(get(location) in routes) && !$token) {
-    push("/login");
+    push("/landing");
   }
 </script>
 
