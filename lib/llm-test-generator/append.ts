@@ -1,6 +1,7 @@
 import type { DB } from "@/lib/db"
 import {
   question,
+  questionChoice,
   questionUnit,
   stimulus,
   stimulusUnit,
@@ -134,6 +135,17 @@ export class Append {
             })),
           )
           .returning({ id: question.id })
+
+        await tx.insert(questionChoice).values(
+          this.mcqs.flatMap((m) =>
+            m.choices.map((c, i) => ({
+              questionId: questionIds[i].id,
+              choice: c.text,
+              correct: c.correct,
+              explanation: c.explanation,
+            })),
+          ),
+        )
 
         await tx.insert(questionUnit).values(
           questionIds.flatMap(({ id }, i) =>
